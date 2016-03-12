@@ -41,16 +41,16 @@ class SimpleParserSpec extends WordSpec with Matchers {
 
 
   "A SimpleParser" should {
-    "parse a simple query all from an index" in {
+    "parse a simple query from an index" in {
       assertParseResult(select, "select * from someindex", Select(AllFields(), Source("someindex", None)))
     }
 
-    "parse select with multiple field and index" in {
+    "parse a query with multiple field and index" in {
       assertParseResult(select, "select field1, field2 from someindex",
         Select(Fields("field1" :: "field2" :: Nil), Source("someindex", None)))
     }
 
-    "parse select with multiple fields and index with type" in {
+    "parse a query with multiple fields and index with type" in {
       assertParseResult(select,
         "select field1, field2, field3 from someindex with type mytype",
         Select(Fields("field1" :: "field2" :: "field3" :: Nil), Source("someindex", Some("mytype"))))

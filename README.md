@@ -19,11 +19,11 @@ Basic DSL -> AST for querying
 - [ ] Parse Simple query
 
 ## First steps
-- [ ] App skeleton with ES host params
+- [X] App skeleton with ES host params
 - [X] Screen parsing libraries
-- [ ] Identify basic keywords (select from)
-- [ ] Identify fields in query
-- [ ] Identify source (index/type)
+- [X] Identify basic keywords (select from)
+- [X] Identify fields in query
+- [X] Identify source (index/type)
 
 
 # Notes
