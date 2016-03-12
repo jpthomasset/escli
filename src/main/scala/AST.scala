@@ -9,7 +9,9 @@ object AST {
   sealed trait SelectList
 
   case class AllFields() extends SelectList
-  case class Fields(val fields: List[String]) extends SelectList
-  case class Select(val selectList: SelectList)
+  case class Fields(fields: List[String]) extends SelectList
 
+  case class Source(index: String, documentType: Option[String])
+
+  case class Select(selectList: SelectList, source: Source)
 }
