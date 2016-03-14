@@ -16,14 +16,12 @@
 ## Next Target
 Basic DSL -> AST for querying
 - [ ] Being able to make a request to ES (not based on a query)
-- [ ] Parse Simple query
+- [ ] Parse Simple query -> AST
 
 ## First steps
-- [X] App skeleton with ES host params
-- [X] Screen parsing libraries
-- [X] Identify basic keywords (select from)
-- [X] Identify fields in query
-- [X] Identify source (index/type)
+- [ ] Decide protocol to connect to ES
+- [ ] Run basic query
+- [ ] Display tabular result
 
 
 # Notes

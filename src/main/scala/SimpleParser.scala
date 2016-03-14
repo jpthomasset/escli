@@ -21,13 +21,11 @@ class SimpleParser extends JavaTokenParsers {
   def index: Parser[String] =
     """\w[\w:.]*""".r
 
-
   def source: Parser[Source] = ((index ~ "with type" ~ ident) ^^ {
     case i ~ "with type" ~ t => Source(i, Some(t))
   }) | (ident ^^ {
     case i => Source(i, None)
   })
-
 
   /** define what to select in a select statement */
   def selectList: Parser[SelectList] = star | fields
