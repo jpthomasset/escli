@@ -45,12 +45,16 @@ object Main extends SimpleParser {
       .foldLeft("")( (acc, line) => {
         if(line.endsWith(";")) {
           //println("Got " + acc + line)
-          println(parse(select, acc + " " + line))
+          handleStatement(acc + line)
           ""
         } else {
           acc + " " + line
         }
       })
 
+  }
+
+  def handleStatement(s:String) = {
+    println(parse(statement, s))
   }
 }

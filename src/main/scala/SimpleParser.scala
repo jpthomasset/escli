@@ -34,6 +34,15 @@ class SimpleParser extends JavaTokenParsers {
   def select: Parser[Select] = "select" ~ selectList ~ "from" ~ source  ^^ {
     case "select" ~ l ~ "from" ~ s => Select(l, s)
   }
+
+  /** delete statement */
+  def delete: Parser[Delete] = "delete from" ~ source  ^^ {
+    case "delete from" ~ s => Delete(s)
+  }
+
+  def empty: Parser[Empty] = "" ^^^ Empty()
+
+  def statement: Parser[Statement] = (select | delete | empty) <~ ";" 
 }
 
 object SimpleParser extends SimpleParser {

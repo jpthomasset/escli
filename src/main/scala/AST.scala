@@ -13,5 +13,10 @@ object AST {
 
   case class Source(index: String, documentType: Option[String])
 
-  case class Select(selectList: SelectList, source: Source)
+
+  sealed trait Statement
+
+  case class Select(selectList: SelectList, source: Source) extends Statement
+  case class Delete(source: Source) extends Statement
+  case class Empty() extends Statement
 }
