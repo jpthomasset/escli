@@ -19,11 +19,11 @@ class SimpleParser extends JavaTokenParsers {
   }
 
   def index: Parser[String] =
-    """\w[\w:.]*""".r
+    """[a-zA-Z0-9:.]+""".r
 
   def source: Parser[Source] = ((index ~ "with type" ~ ident) ^^ {
     case i ~ "with type" ~ t => Source(i, Some(t))
-  }) | (ident ^^ {
+  }) | (index ^^ {
     case i => Source(i, None)
   })
 

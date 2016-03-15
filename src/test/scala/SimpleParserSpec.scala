@@ -28,9 +28,29 @@ class SimpleParserSpec extends WordSpec with Matchers {
     }
   }
 
+  "An 'index' parser" should {
+
+    "parse an index composed of word chars" in {
+      assertParseResult(index, "someindexname", "someindexname")
+    }
+
+    "parse an index composed of alphanumeric chars" in {
+      assertParseResult(index, "someindexname1234", "someindexname1234")
+    }
+
+    "parse an index containing a colon" in {
+      assertParseResult(index, "some:index:name", "some:index:name")
+    }
+  }
+
+
   "A 'source' parser" should {
     "parse a simple index" in {
       assertParseResult(source, "someindexname", Source("someindexname", None))
+    }
+
+    "parse an index with colon" in {
+      assertParseResult(source, "some:index:name", Source("some:index:name", None))
     }
 
     "parse an index with type information" in {
