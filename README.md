@@ -16,7 +16,9 @@
 ## Next Target
 Basic DSL -> AST for querying
 - [ ] Being able to make a request to ES (not based on a query)
-- [X] Parse Simple query -> AST
+- [ ] Parse Simple query -> AST 
+- [ ] Transform AST -> ES Query
+
 
 ## First steps
 - [X] Decide protocol to connect to ES : HTTP

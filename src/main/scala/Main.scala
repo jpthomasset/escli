@@ -3,6 +3,7 @@ package escli
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
+import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._ 
 import akka.stream.ActorMaterializer
 import akka.actor.ActorSystem
  
@@ -28,13 +29,15 @@ object Main extends SimpleParser {
 
     val f =
       Http().singleRequest(HttpRequest(uri = url + "/_search"))
-        .map(Unmarshal(_).to[String])
+        .map(Unmarshal(_).to[JsValue]).flatMap(identity)
 
 
 
     f onSuccess {
-      case r =>
-        println("Result " + r)
+      case JsObject(r) => r.get("hits") collect {
+        case JsObject(h) => println("Got " + h.get("total") + " Results")
+      }
+      case _ => println("Success but of unknown type")
     }
     // println(parse(select, "select * from someindex"))
 
