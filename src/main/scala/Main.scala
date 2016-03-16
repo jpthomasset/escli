@@ -7,10 +7,11 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.stream.ActorMaterializer
 import akka.actor.ActorSystem
  
-import scala.concurrent.{Future, Await}
+import scala.concurrent.Await
 import scala.concurrent.duration._
 
-import spray.json._
+import escli.ElasticJson._
+import escli.ElasticJsonProtocol._
 
 import scala.io.StdIn.readLine
 
@@ -29,17 +30,9 @@ object Main extends SimpleParser {
 
     val f =
       Http().singleRequest(HttpRequest(uri = url + "/_search"))
-        .map(Unmarshal(_).to[JsValue]).flatMap(identity)
-
-
-
-    f onSuccess {
-      case JsObject(r) => r.get("hits") collect {
-        case JsObject(h) => println("Got " + h.get("total") + " Results")
-      }
-      case _ => println("Success but of unknown type")
-    }
-    // println(parse(select, "select * from someindex"))
+        .map(Unmarshal(_).to[SearchResponse])
+        .flatMap(identity)
+        .map(r => println("Got " + r.hits.total + " responses.\n" + r.hits.hits))
 
 
     Await.result(f, 5.seconds)
