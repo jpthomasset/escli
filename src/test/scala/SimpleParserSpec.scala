@@ -38,8 +38,8 @@ class SimpleParserSpec extends WordSpec with Matchers {
       assertParseResult(index, "someindexname1234", "someindexname1234")
     }
 
-    "parse an index containing a colon" in {
-      assertParseResult(index, "some:index:name", "some:index:name")
+    "parse an index containing some special chars ([:._-*]" in {
+      assertParseResult(index, "some:index:*name_with-and.dot", "some:index:*name_with-and.dot")
     }
   }
 

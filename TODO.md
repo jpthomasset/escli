@@ -1,4 +1,4 @@
-# Querying Elasticsearch
+# Kata
 
 ## Problem/Now
 - Hard to query data
