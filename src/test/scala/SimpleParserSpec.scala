@@ -26,9 +26,7 @@ class SimpleParserSpec extends WordSpec with Matchers {
     "ignore dot with no trailing name" in {
       assertParseResult(field, "aa.", "aa")
     }
-
   }
-
 
   "A `selectList` parser" should {
     "parse a star" in {
