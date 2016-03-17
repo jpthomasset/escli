@@ -14,6 +14,22 @@ class SimpleParserSpec extends WordSpec with Matchers {
     }
   }
 
+  "A field name parser" should {
+    "allow alphanumeric chars" in {
+      assertParseResult(field, "aabb.", "aabb")
+    }
+
+    "allow dot in the middle" in {
+      assertParseResult(field, "aa.bb.", "aa.bb")
+    }
+
+    "ignore dot with no trailing name" in {
+      assertParseResult(field, "aa.", "aa")
+    }
+
+  }
+
+
   "A `selectList` parser" should {
     "parse a star" in {
       assertParseResult(selectList, "*", AllFields())

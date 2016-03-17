@@ -11,7 +11,7 @@ class SimpleParser extends JavaTokenParsers {
   def star: Parser[AllFields] = "*" ^^^ (AllFields())
 
   /** field format */
-  def field: Parser[String] = ident
+  def field: Parser[String] = """[a-zA-Z0-9_](?:\.?[a-zA-Z0-9_]+)*""".r
   
   /** list of field in select statement */
   def fields: Parser[Fields] = repsep(field, ",") ^^ {
