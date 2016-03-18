@@ -10,9 +10,13 @@ import akka.actor.ActorSystem
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
+import spray.json._
+
 import escli.ElasticJson._
 import escli.ElasticJsonProtocol._
 
+import akka.http.scaladsl.model.MediaTypes._
+import akka.http.scaladsl.model.HttpCharsets
 import scala.io.StdIn.readLine
 
 object Main extends SimpleParser {
@@ -28,14 +32,7 @@ object Main extends SimpleParser {
     implicit val materializer = ActorMaterializer()
     implicit val ec = system.dispatcher
 
-    val f =
-      Http().singleRequest(HttpRequest(uri = url + "/_search"))
-        .map(Unmarshal(_).to[SearchResponse])
-        .flatMap(identity)
-        .map(r => println("Got " + r.hits.total + " responses.\n" + r.hits.hits))
-
-
-    Await.result(f, 5.seconds)
+    
 
 
     println("escli v0.1")
@@ -45,7 +42,7 @@ object Main extends SimpleParser {
       .foldLeft("")( (acc, line) => {
         if(line.endsWith(";")) {
           //println("Got " + acc + line)
-          handleStatement(acc + line)
+          handleStatement(url, acc + line)
           ""
         } else {
           acc + " " + line
@@ -56,8 +53,35 @@ object Main extends SimpleParser {
     Http().shutdownAllConnectionPools() andThen { case _ => system.terminate() }
   }
 
-  def handleStatement(s:String) = {
-    println(parse(statement, s))
+  def request(baseUrl: String, r: Request)(implicit system:ActorSystem,  materializer:ActorMaterializer) = {
+    implicit val ec = system.dispatcher
+
+    val body = HttpEntity(`application/json`, r.body.toJson.toString)
+    val httpRequest = HttpRequest(HttpMethods.POST, baseUrl + r.path, Nil, body)
+
+    println(httpRequest)
+    val f =
+      Http().singleRequest(httpRequest)
+        .map(Unmarshal(_).to[String])
+        .flatMap(identity)
+        .map(r => println(r))
+        /*.map(Unmarshal(_).to[SearchResponse])
+        .flatMap(identity)
+        .map(r => println("Got " + r.hits.total + " responses.\n" + r.hits.hits))*/
+
+
+    Await.result(f, 5.seconds)
+    }
+
+  def handleStatement(baseUrl: String, s:String)(implicit system:ActorSystem,  materializer:ActorMaterializer) = {
+    parse(statement, s) match {
+      case Success(r, _) =>
+        val q = QueryBuilder.build(r)
+        println(q.body.toJson)
+        request(baseUrl, q)
+
+      case e => println(e)
+    }
   }
 
 }
