@@ -23,6 +23,7 @@ object ElasticJsonProtocol extends DefaultJsonProtocol {
   implicit val hitFormat = jsonFormat5(Hit)
   implicit val hitsFormat = jsonFormat3(Hits)
   implicit val searchResponseFormat = jsonFormat4(SearchResponse)
+  implicit val errorResponseFormat = jsonFormat2(ErrorResponse)
 
   implicit val requestBodyFormat = jsonFormat3(RequestBody)
 }

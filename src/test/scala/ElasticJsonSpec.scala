@@ -22,6 +22,8 @@ class ElasticJsonSpec extends WordSpec with Matchers {
 
   val jsonResponse = """{"took":1,"timed_out":false,"_shards":""" + jsonShard + """, "hits": """ + jsonHits + """}"""
 
+  val jsonError = """{"error": "IndexMissingException[[account] missing]", "status": 404}"""
+
   "ElasticJsonProtocol parser" should {
     "parse a ShardInfo json" in {
       assertResult(ShardInfo(5, 5, 0)) {
@@ -51,8 +53,14 @@ class ElasticJsonSpec extends WordSpec with Matchers {
         'took (1)
         'timed_out (false)
       }
+    }
 
-      
+    "parse an ErrorResponse json" in {
+      val response = jsonError.parseJson.convertTo[ErrorResponse] 
+      response should have {
+        'error ("IndexMissingException[[account] missing]")
+        'status (404)
+      }
     }
   }
 }

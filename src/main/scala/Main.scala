@@ -7,7 +7,7 @@ import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
 import akka.stream.ActorMaterializer
 import akka.actor.ActorSystem
  
-import scala.concurrent.Await
+import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
 
 import spray.json._
@@ -16,7 +16,6 @@ import escli.ElasticJson._
 import escli.ElasticJsonProtocol._
 
 import akka.http.scaladsl.model.MediaTypes._
-import akka.http.scaladsl.model.HttpCharsets
 import scala.io.StdIn.readLine
 
 object Main extends SimpleParser {
@@ -54,17 +53,24 @@ object Main extends SimpleParser {
   }
 
   def request(baseUrl: String, r: Request)(implicit system:ActorSystem,  materializer:ActorMaterializer) = {
+    import StatusCodes._
     implicit val ec = system.dispatcher
+
+
 
     val body = HttpEntity(`application/json`, r.body.toJson.toString)
     val httpRequest = HttpRequest(HttpMethods.POST, baseUrl + r.path, Nil, body)
 
-    println(httpRequest)
     val f =
       Http().singleRequest(httpRequest)
-        .map(Unmarshal(_).to[String])
+        .map(r => r.status match {
+          case OK => Unmarshal(r.entity).to[SearchResponse]
+          case NotFound => Unmarshal(r.entity).to[ErrorResponse]
+          case BadRequest => Unmarshal(r.entity).to[ErrorResponse]
+          case _ => Future.failed(new Exception("Unhandled response: " + r.status))
+        })
         .flatMap(identity)
-        .map(r => println(r))
+        .map(println)
         /*.map(Unmarshal(_).to[SearchResponse])
         .flatMap(identity)
         .map(r => println("Got " + r.hits.total + " responses.\n" + r.hits.hits))*/
@@ -77,7 +83,6 @@ object Main extends SimpleParser {
     parse(statement, s) match {
       case Success(r, _) =>
         val q = QueryBuilder.build(r)
-        println(q.body.toJson)
         request(baseUrl, q)
 
       case e => println(e)
