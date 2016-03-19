@@ -1,4 +1,5 @@
 import org.scalatest._
+import org.scalatest.OptionValues._
 
 import escli.AST._
 import escli.QueryBuilder
@@ -20,7 +21,13 @@ class QueryBuilderSpec extends WordSpec with Matchers {
 
     "build an array of string as field list" in {
       val b = QueryBuilder.build(Fields("field1" :: "field2" :: Nil))
-      b should be defined
+      b.value should be (Array("field1", "field2"))
+     
+    }
+
+    "build an empty list as field list when all fields are queried" in {
+      val b = QueryBuilder.build(AllFields())
+      b should not be defined
 
     }
   }
