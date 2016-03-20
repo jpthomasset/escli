@@ -13,10 +13,15 @@ object Main extends SimpleParser {
 
     val handler = new CommandHandler(baseUrl)
 
-    val reader = new CommandReader("escli> ")
-    reader.read(handler.handleStatement)
+    
 
-    handler.shutdown()
+    try {
+      Terminal.scan().foreach(handler.handleStatement)
+      //(c => println("Command: " + c))
+    } finally {
+      Terminal.shutdown()
+      handler.shutdown()
+    }
   }
 
 }

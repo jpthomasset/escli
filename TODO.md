@@ -27,6 +27,7 @@ Basic DSL -> AST for querying
 
 
 # Notes
+- Reset terminal on exit
 
 ## Query Parsing
 - http://kufli.blogspot.fr/2015/01/scala-parser-combinators-sql-parser.html

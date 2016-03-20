@@ -4,11 +4,11 @@ import AST._
 import ElasticJson._
 
 object QueryBuilder {
-  def build(statement: Statement): Request = {
+  def build(statement: Statement): Option[Request] = {
     statement match {
       case Select(list, source) =>
-        Request(build(source), RequestBody(None, None, build(list)))
-      case _ => ???
+        Some(Request(build(source), RequestBody(None, None, build(list))))
+      case _ => None
       }
   }
 

@@ -37,25 +37,19 @@ class CommandHandler(val baseUrl: String)(implicit system: ActorSystem, material
           case OK => Unmarshal(r.entity).to[SearchResponse]
           case NotFound => Unmarshal(r.entity).to[ErrorResponse]
           case BadRequest => Unmarshal(r.entity).to[ErrorResponse]
-          case _ => Future.successful(ErrorResponse("Unhandled response", -1))
+          case _ => Unmarshal(r.entity).to[String].map(ErrorResponse(_, -1))
           //Future.failed(new Exception("Unhandled response: " + r.status))
         })
         .flatMap(identity)
         .map(println)
-    /*.map(Unmarshal(_).to[SearchResponse])
-        .flatMap(identity)
-        .map(r => println("Got " + r.hits.total + " responses.\n" + r.hits.hits))*/
 
     Await.result(f, 5.seconds)
   }
 
   def handleStatement(s: String) = {
     parse(statement, s) match {
-      case Success(r, _) =>
-        val q = QueryBuilder.build(r)
-        request(baseUrl, q)
-
-      case e => println(e)
+      case Success(r, _) => QueryBuilder.build(r).map(request(baseUrl, _))
+      case e => println("Parse error: " + e)
     }
   }
 
