@@ -48,7 +48,9 @@ class CommandHandler(val baseUrl: String)(implicit system: ActorSystem, material
 
   def handleStatement(s: String) = {
     parse(statement, s) match {
-      case Success(r, _) => QueryBuilder.build(r).map(request(baseUrl, _))
+      case Success(r, _) => r match {
+        case AST.Exit() => println("Exiting...") 
+        case _ => QueryBuilder.build(r).map(request(baseUrl, _))
       case e => println("Parse error: " + e)
     }
   }
