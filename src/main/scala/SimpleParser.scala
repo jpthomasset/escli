@@ -42,7 +42,9 @@ class SimpleParser extends JavaTokenParsers {
 
   def empty: Parser[Empty] = "" ^^^ Empty()
 
-  def statement: Parser[Statement] = (select | delete | empty) <~ ";" 
+  def exit: Parser[Exit] = "exit" ^^^ Exit()
+
+  def statement: Parser[Statement] = (select | delete | exit | empty) <~ ";" 
 }
 
 object SimpleParser extends SimpleParser {

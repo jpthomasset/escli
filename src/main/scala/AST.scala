@@ -17,5 +17,8 @@ object AST {
   case class Select(selectList: SelectList, source: Source) extends Statement
   case class Delete(source: Source) extends Statement
   case class Empty() extends Statement
+
+
+  case class Exit() extends Statement
 }
 

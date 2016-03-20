@@ -119,6 +119,10 @@ class SimpleParserSpec extends WordSpec with Matchers {
     "parse an empty query" in {
       assertParseResult(statement, ";", Empty())
     }
+
+    "parse an exit command" in {
+      assertParseResult(statement, "exit;", Exit())
+    }
     
   }
 
