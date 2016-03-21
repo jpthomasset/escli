@@ -29,5 +29,9 @@ class CommandScannerSpec extends WordSpec with Matchers {
         CommandScanner(List("some command;", "some", "other", "command;").iterator).toList
       }
     }
+
+    "throw an exception when the source is empty" in {
+      an [NoSuchElementException] should be thrownBy CommandScanner(Iterator.empty).next()
+     }
   }
 }
