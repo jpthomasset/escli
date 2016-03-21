@@ -2,7 +2,7 @@ package escli
 
 import jline.console.ConsoleReader
 import jline.TerminalFactory
-import scala.collection.AbstractIterator
+
 
 class Terminal(val prompt: String) {
 
@@ -13,26 +13,16 @@ class Terminal(val prompt: String) {
   val reader = new ConsoleReader()
   reader.setPrompt(prompt)
   
-  def scan(): Iterator[String] = new AbstractIterator[String] {
-    val source = Iterator
+  def scan(): Iterator[String] =
+    Iterator
       .continually(reader.readLine())
       .takeWhile(_ != null)
+}
 
-    def hasNext = source.hasNext
+object Terminal {
+  def apply(prompt: String) = new Terminal(prompt)
 
-    def next() = if (source.hasNext) {
-      var res = ""
-      while (!res.endsWith(";") && source.hasNext) {
-        res = res + source.next()
-      }
-      res
-    } else Iterator.empty.next()
-  }
-
-  
   def shutdown() = {
     TerminalFactory.get().restore()
   }
 }
-
-object Terminal extends Terminal("escli> ")

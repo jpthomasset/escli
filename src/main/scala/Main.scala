@@ -13,11 +13,9 @@ object Main extends SimpleParser {
 
     val handler = new CommandHandler(baseUrl)
 
-    
-
     try {
-      Terminal.scan().foreach(handler.handleStatement)
-      //(c => println("Command: " + c))
+      CommandScanner(Terminal("escli> ").scan())
+        .foreach(handler.handleStatement)
     } finally {
       Terminal.shutdown()
       handler.shutdown()
