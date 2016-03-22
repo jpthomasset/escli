@@ -26,8 +26,14 @@ Basic DSL -> AST for querying
 - [ ] Display tabular result
 
 
-# Notes
-- Reset terminal on exit
+# TODO
+- Add test on CommandHandler
+- Refactor CommandHandler printing methods
+- Remove quote in tabular output
+- Add 'explain' keyword to get raw json query performed against ES
+- Add 'explain result' to get raw json result
+- Use external pager for output (as in mysql)
+
 
 ## Query Parsing
 - http://kufli.blogspot.fr/2015/01/scala-parser-combinators-sql-parser.html

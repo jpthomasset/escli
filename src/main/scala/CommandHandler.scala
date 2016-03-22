@@ -41,9 +41,61 @@ class CommandHandler(val baseUrl: String)(implicit system: ActorSystem, material
           //Future.failed(new Exception("Unhandled response: " + r.status))
         })
         .flatMap(identity)
-        .map(println)
+        .map({
+          case x: SearchResponse => print(x)
+          case x => println(x)
+        })
 
     Await.result(f, 5.seconds)
+  }
+
+  def columnSize(hit: Hit): Map[String, Int] = {
+    hit._source match {
+      case JsObject(o) => o.map(t => (t._1, t._1.length().max(jsSize(t._2))))
+      case _ => Map.empty
+    }
+  }
+
+  def jsSize(x: JsValue): Int = x match {
+    case _: JsObject => x.toString().length().min(40)
+    case _ => x.toString().length()
+  }
+
+  def print(r: SearchResponse) {
+    print(r.hits.hits)
+  }
+
+  def print(hits: Array[Hit]) {
+    val columns = hits
+      .map(columnSize)
+      .reduce { (a, b) => a ++ b.map { case (k: String, v: Int) => k -> v.max(a.getOrElse(k, 0)) } }
+
+    def printRow(f:(String, Int) => String, pad:String, sep:String) = {
+      Console.print(sep)
+      columns.foreach {
+        case (col, size) =>
+          val content = f(col, size).take(size)
+          val padString = pad * (size - content.length() + 1)
+          Console.print(pad + content + padString + sep)
+      }
+      println()
+    }
+
+    def printSeparator() = printRow((col, size) => "", "-", "+")
+    def printHeader() = printRow((col, size) => col, " ", "|")
+    def printHit(h:Hit) = printRow(
+      (col, size) => h._source.asJsObject.fields.getOrElse(col, "").toString(),
+      " ",
+      "|")
+
+    printSeparator()
+    printHeader()
+    printSeparator()
+
+    hits.foreach(printHit)
+
+    printSeparator()
+
   }
 
   def handleStatement(s: String) = {

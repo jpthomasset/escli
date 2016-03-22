@@ -4,11 +4,11 @@ import spray.json.JsValue
 import spray.json.DefaultJsonProtocol
 
 object ElasticJson {
+  /** Response objects */
   case class ShardInfo(total: Int, successful: Int, failed: Int)
   case class Hit(_index: String, _type: String, _id: String, _score: Double, _source: JsValue)
   case class Hits(total: Long, max_score: Double, hits: Array[Hit])
   case class SearchResponse(took: Long , timed_out: Boolean, _shards: ShardInfo, hits: Hits)
-
   case class ErrorResponse(error: String, status: Int)
 
   /** Request objects */
