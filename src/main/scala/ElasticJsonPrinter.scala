@@ -17,8 +17,9 @@ class ElasticJsonPrinter(output: String => Unit) {
     case _ => x.toString().length()
   }
 
-  def print(r: SearchResponse): Unit = {
-    print(r.hits.hits)
+  def print(rq:Request, rs: SearchResponse): Unit = {
+    val cols = rq.body._source.getOrElse(Array.empty).toList
+    print(rs.hits.hits, cols)
   }
 
   /**
@@ -30,31 +31,36 @@ class ElasticJsonPrinter(output: String => Unit) {
    * | a2  | b2  |
    * +-----+-----+
    */
-  def print(hits: Array[Hit]): Unit = {
+  def print(hits: Array[Hit], queryCols: List[String]): Unit = {
     // get column size
     val columns = hits
       .map(columnSize)
       .reduce { (a, b) => a ++ b.map { case (k: String, v: Int) => k -> v.max(a.getOrElse(k, 0)) } }
 
+    val detectedCols = columns.map { case(col, _) => col}.filterNot(queryCols.toSet)
+
+    val orderedCols = queryCols ++ detectedCols
+       
+
     /** Utility to print a row of separator, header or data (Hit) */
-    def printRow(f: (String, Int) => String, pad: String, sep: String) = {
+    def printRow(f: (String) => String, pad: String, sep: String) = {
       output(sep)
-      columns.foreach {
-        case (col, size) =>
-          val content = f(col, size).take(size)
-          val padString = pad * (size - content.length() + 1)
-          output(pad + content + padString + sep)
-      }
+      orderedCols.foreach(col => { 
+        val size =  columns.getOrElse(col, col.length())
+        val content = f(col).take(size)
+        val padString = pad * (size - content.length() + 1)
+        output(pad + content + padString + sep)
+      })
       output("\n")
     }
 
     /** Print a separator: +---+---+ */
-    def printSeparator() = printRow((col, size) => "", "-", "+")
+    def printSeparator() = printRow(col => "", "-", "+")
     /** Print columns header: | A | B | */
-    def printHeader() = printRow((col, size) => col, " ", "|")
+    def printHeader() = printRow(col => col, " ", "|")
     /** Print one row of data: | a | b | */
     def printHit(h: Hit) = printRow(
-      (col, size) => h._source.asJsObject.fields.getOrElse(col, "").toString(),
+      col => h._source.asJsObject.fields.getOrElse(col, "").toString(),
       " ",
       "|"
     )
