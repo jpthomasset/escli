@@ -3,7 +3,7 @@ package escli
 import spray.json._
 import escli.ElasticJson._
 
-object ElasticJsonPrinter {
+class ElasticJsonPrinter(output: String => Unit) {
 
   def columnSize(hit: Hit): Map[String, Int] = {
     hit._source match {
@@ -21,14 +21,15 @@ object ElasticJsonPrinter {
     print(r.hits.hits)
   }
 
-  /** Output data in tabular format: 
-    * +-----+-----+
-    * |  A  |  B  |
-    * +-----+-----+
-    * | a1  | b1  |
-    * | a2  | b2  |
-    * +-----+-----+
-    */
+  /**
+   * Output data in tabular format:
+   * +-----+-----+
+   * |  A  |  B  |
+   * +-----+-----+
+   * | a1  | b1  |
+   * | a2  | b2  |
+   * +-----+-----+
+   */
   def print(hits: Array[Hit]): Unit = {
     // get column size
     val columns = hits
@@ -37,14 +38,14 @@ object ElasticJsonPrinter {
 
     /** Utility to print a row of separator, header or data (Hit) */
     def printRow(f: (String, Int) => String, pad: String, sep: String) = {
-      Console.print(sep)
+      output(sep)
       columns.foreach {
         case (col, size) =>
           val content = f(col, size).take(size)
           val padString = pad * (size - content.length() + 1)
-          Console.print(pad + content + padString + sep)
+          output(pad + content + padString + sep)
       }
-      println()
+      output("\n")
     }
 
     /** Print a separator: +---+---+ */
@@ -68,4 +69,8 @@ object ElasticJsonPrinter {
 
   }
 
+}
+
+object ElasticJsonPrinter {
+  val StdOut = new ElasticJsonPrinter(Console.print)
 }

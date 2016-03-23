@@ -42,7 +42,7 @@ class CommandHandler(val baseUrl: String)(implicit system: ActorSystem, material
         })
         .flatMap(identity)
         .map({
-          case x: SearchResponse => ElasticJsonPrinter.print(x)
+          case x: SearchResponse => ElasticJsonPrinter.StdOut.print(x)
           case x => println(x)
         })
 
