@@ -12,9 +12,20 @@ class ElasticJsonPrinter(output: String => Unit) {
     }
   }
 
+  def jsString(x: JsValue) : String = x match {
+    case JsObject(_) => x.toString()
+      case JsArray(_)  => x.toString()
+      case JsNull      => "null"
+      case JsTrue      => "true"
+      case JsFalse     => "false"
+      case JsNumber(x) => x.toString()
+      case JsString(x) => x
+      case _           => throw new IllegalStateException
+  }
+
   def jsSize(x: JsValue): Int = x match {
-    case _: JsObject => x.toString().length().min(40)
-    case _ => x.toString().length()
+    case _: JsObject => jsString(x).length().min(40)
+    case _ => jsString(x).length()
   }
 
   def print(rq:Request, rs: SearchResponse): Unit = {
@@ -60,7 +71,7 @@ class ElasticJsonPrinter(output: String => Unit) {
     def printHeader() = printRow(col => col, " ", "|")
     /** Print one row of data: | a | b | */
     def printHit(h: Hit) = printRow(
-      col => h._source.asJsObject.fields.getOrElse(col, "").toString(),
+      col => jsString(h._source.asJsObject.fields.getOrElse(col, JsNull)),
       " ",
       "|"
     )
