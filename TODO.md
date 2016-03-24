@@ -29,6 +29,7 @@ Basic DSL -> AST for querying
 # TODO
 - Add test on CommandHandler
 - Refactor CommandHandler printing methods
+- Add total hits & time taken in output
 - Add 'explain' keyword to get raw json query performed against ES
 - Add 'explain result' to get raw json result
 - Use external pager for output (as in mysql)
