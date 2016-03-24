@@ -31,6 +31,7 @@ class ElasticJsonPrinter(output: String => Unit) {
   def print(rq:Request, rs: SearchResponse): Unit = {
     val cols = rq.body._source.getOrElse(Array.empty).toList
     print(rs.hits.hits, cols)
+    output(s"\033[0;1mDisplayed ${rs.hits.hits.length} of ${rs.hits.total} documents (${rs.took} ms)\033[0;0m\n\n")
   }
 
   /**
