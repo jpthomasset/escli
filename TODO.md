@@ -28,9 +28,11 @@ Basic DSL -> AST for querying
 
 # TODO
 - Add test on CommandHandler
+- Add test on ElasticJsonPrinter
 - Refactor CommandHandler printing methods
 - Add 'explain' keyword to get raw json query performed against ES
 - Add 'explain result' to get raw json result
+- Add limit keyword
 - Use external pager for output (as in mysql)
 
 
