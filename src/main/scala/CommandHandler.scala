@@ -1,6 +1,6 @@
 package escli
 
-import akka.http.scaladsl.Http
+
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
@@ -17,19 +17,18 @@ import spray.json._
 import escli.ElasticJson._
 import escli.ElasticJsonProtocol._
 
-class CommandHandler(val baseUrl: String)(implicit system: ActorSystem, materializer: ActorMaterializer)
-  extends SimpleParser {
+class CommandHandler(val baseUrl: String, val makeRequest: (HttpRequest) => Future[HttpResponse])(implicit system: ActorSystem, materializer: ActorMaterializer)extends SimpleParser {
 
   implicit val ec = system.dispatcher
 
-  def request(baseUrl: String, r: Request)(implicit system: ActorSystem, materializer: ActorMaterializer) = {
+  def request(r: Request) = {
     import StatusCodes._
 
     val body = HttpEntity(`application/json`, r.body.toJson.toString)
     val httpRequest = HttpRequest(HttpMethods.POST, baseUrl + r.path, Nil, body)
 
     val f =
-      Http().singleRequest(httpRequest)
+      makeRequest(httpRequest)
         .recover {
           case t => HttpResponse(StatusCodes.InternalServerError, entity = t.getMessage)
         }
@@ -38,7 +37,6 @@ class CommandHandler(val baseUrl: String)(implicit system: ActorSystem, material
           case NotFound => Unmarshal(r.entity).to[ErrorResponse]
           case BadRequest => Unmarshal(r.entity).to[ErrorResponse]
           case _ => Unmarshal(r.entity).to[String].map(ErrorResponse(_, -1))
-          //Future.failed(new Exception("Unhandled response: " + r.status))
         })
         .flatMap(identity)
         .map({
@@ -55,13 +53,10 @@ class CommandHandler(val baseUrl: String)(implicit system: ActorSystem, material
     parse(statement, s) match {
       case Success(r, _) => r match {
         case AST.Exit() => println("Exiting...")
-        case _ => QueryBuilder.build(r).map(request(baseUrl, _))
+        case _ => QueryBuilder.build(r).map(request)
       }
       case e => println("Parse error: " + e)
     }
   }
 
-  def shutdown() = {
-    Http().shutdownAllConnectionPools() andThen { case _ => system.terminate() }
-  }
 }

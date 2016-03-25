@@ -2,6 +2,8 @@ package escli
 
 import akka.stream.ActorMaterializer
 import akka.actor.ActorSystem
+import akka.http.scaladsl.Http
+
 
 object Main extends SimpleParser {
   def main(args: Array[String]): Unit = {
@@ -10,15 +12,16 @@ object Main extends SimpleParser {
 
     implicit val system = ActorSystem()
     implicit val materializer = ActorMaterializer()
+    implicit val ec = system.dispatcher
 
-    val handler = new CommandHandler(baseUrl)
+    val handler = new CommandHandler(baseUrl, Http().singleRequest(_))
 
     try {
       CommandScanner(Terminal("escli> ").scan())
         .foreach(handler.handleStatement)
     } finally {
       Terminal.shutdown()
-      handler.shutdown()
+      Http().shutdownAllConnectionPools() andThen { case _ => system.terminate() }
     }
   }
 
