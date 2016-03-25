@@ -12,15 +12,15 @@ class ElasticJsonPrinter(output: String => Unit) {
     }
   }
 
-  def jsString(x: JsValue) : String = x match {
+  def jsString(x: JsValue): String = x match {
     case JsObject(_) => x.toString()
-      case JsArray(_)  => x.toString()
-      case JsNull      => "null"
-      case JsTrue      => "true"
-      case JsFalse     => "false"
-      case JsNumber(x) => x.toString()
-      case JsString(x) => x
-      case _           => throw new IllegalStateException
+    case JsArray(_) => x.toString()
+    case JsNull => "null"
+    case JsTrue => "true"
+    case JsFalse => "false"
+    case JsNumber(x) => x.toString()
+    case JsString(x) => x
+    case _ => throw new IllegalStateException
   }
 
   def jsSize(x: JsValue): Int = x match {
@@ -28,10 +28,15 @@ class ElasticJsonPrinter(output: String => Unit) {
     case _ => jsString(x).length()
   }
 
-  def print(rq:Request, rs: SearchResponse): Unit = {
-    val cols = rq.body._source.getOrElse(Array.empty).toList
-    print(rs.hits.hits, cols)
-    output(s"\033[0;1mDisplayed ${rs.hits.hits.length} of ${rs.hits.total} documents (${rs.took} ms)\033[0;0m\n\n")
+  def print(rq: Request, rs: SearchResponse): Unit = {
+    if (rs.hits.total > 0) {
+      val cols = rq.body._source.getOrElse(Array.empty).toList
+      print(rs.hits.hits, cols)
+      output(s"\033[0;1mDisplayed ${rs.hits.hits.length} of ${rs.hits.total} documents (${rs.took} ms)\033[0;0m\n\n")
+    } else {
+      output(s"\033[0;1mEmpty set (${rs.took} ms)\033[0;0m\n\n")
+    }
+
   }
 
   /**
@@ -44,47 +49,47 @@ class ElasticJsonPrinter(output: String => Unit) {
    * +-----+-----+
    */
   def print(hits: Array[Hit], queryCols: List[String]): Unit = {
-    // get column size
-    val columns = hits
-      .map(columnSize)
-      .reduce { (a, b) => a ++ b.map { case (k: String, v: Int) => k -> v.max(a.getOrElse(k, 0)) } }
+    if (hits.length > 0) {
+      // get column size
+      val columns = hits
+        .map(columnSize)
+        .reduce { (a, b) => a ++ b.map { case (k: String, v: Int) => k -> v.max(a.getOrElse(k, 0)) } }
 
-    val detectedCols = columns.map { case(col, _) => col}.filterNot(queryCols.toSet)
+      val detectedCols = columns.map { case (col, _) => col }.filterNot(queryCols.toSet)
 
-    val orderedCols = queryCols ++ detectedCols
-       
+      val orderedCols = queryCols ++ detectedCols
 
-    /** Utility to print a row of separator, header or data (Hit) */
-    def printRow(f: (String) => String, pad: String, sep: String) = {
-      output(sep)
-      orderedCols.foreach(col => { 
-        val size =  columns.getOrElse(col, col.length())
-        val content = f(col).take(size)
-        val padString = pad * (size - content.length() + 1)
-        output(pad + content + padString + sep)
-      })
-      output("\n")
+      /** Utility to print a row of separator, header or data (Hit) */
+      def printRow(f: (String) => String, pad: String, sep: String) = {
+        output(sep)
+        orderedCols.foreach(col => {
+          val size = columns.getOrElse(col, col.length())
+          val content = f(col).take(size)
+          val padString = pad * (size - content.length() + 1)
+          output(pad + content + padString + sep)
+        })
+        output("\n")
+      }
+
+      /** Print a separator: +---+---+ */
+      def printSeparator() = printRow(col => "", "-", "+")
+      /** Print columns header: | A | B | */
+      def printHeader() = printRow(col => col, " ", "|")
+      /** Print one row of data: | a | b | */
+      def printHit(h: Hit) = printRow(
+        col => jsString(h._source.asJsObject.fields.getOrElse(col, JsNull)),
+        " ",
+        "|"
+      )
+
+      printSeparator()
+      printHeader()
+      printSeparator()
+
+      hits.foreach(printHit)
+
+      printSeparator()
     }
-
-    /** Print a separator: +---+---+ */
-    def printSeparator() = printRow(col => "", "-", "+")
-    /** Print columns header: | A | B | */
-    def printHeader() = printRow(col => col, " ", "|")
-    /** Print one row of data: | a | b | */
-    def printHit(h: Hit) = printRow(
-      col => jsString(h._source.asJsObject.fields.getOrElse(col, JsNull)),
-      " ",
-      "|"
-    )
-
-    printSeparator()
-    printHeader()
-    printSeparator()
-
-    hits.foreach(printHit)
-
-    printSeparator()
-
   }
 
 }
