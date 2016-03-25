@@ -24,7 +24,7 @@ class ElasticJsonPrinter(output: String => Unit) {
   }
 
   def jsSize(x: JsValue): Int = x match {
-    case _: JsObject => jsString(x).length().min(40)
+    case _: JsObject => jsString(x).length().min(80)
     case _ => jsString(x).length()
   }
 

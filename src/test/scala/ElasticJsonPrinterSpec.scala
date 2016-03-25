@@ -47,9 +47,9 @@ class ElasticJsonPrinterSpec extends WordSpec with Matchers {
       printer.jsSize(jsValue) should equal(10)
     }
 
-    "Trim a JsObject to 40 char max" in {
-      val jsObject = JsObject(("key1" -> JsString("very long value over 40 chars (bla bla bla bla bla bla bla)")))
-      printer.jsSize(jsObject) should equal(40)
+    "Trim a JsObject to 80 char max" in {
+      val jsObject = JsObject(("key1" -> JsString("very long value over 80 chars (bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla)")))
+      printer.jsSize(jsObject) should equal(80)
     }
   }
 
