@@ -11,8 +11,11 @@ class SimpleParser extends JavaTokenParsers {
   def star: Parser[AllFields] = "*" ^^^ (AllFields())
 
   /** field format */
-  def field: Parser[String] = """[a-zA-Z0-9_](?:\.?[a-zA-Z0-9_]+)*""".r
-  
+  def field: Parser[String] = """[a-zA-Z0-9_](?:\.?[a-zA-Z0-9_*]+)*""".r
+
+  /** field without star */
+  def fieldwithoutstar: Parser[String] = """[a-zA-Z0-9_](?:\.?[a-zA-Z0-9_]+)*""".r
+
   /** list of field in select statement */
   def fields: Parser[Fields] = repsep(field, ",") ^^ {
     case fieldList => Fields(fieldList)
@@ -32,7 +35,11 @@ class SimpleParser extends JavaTokenParsers {
 
   def limit: Parser[Option[Limit]] = ("limit" ~ wholeNumber ^^ {
     case "limit" ~ i => Some(Limit(i.toInt))
-      }) | ("" ^^^ (None))
+  }) | ("" ^^^ (None))
+
+  def string: Parser[String] = "'([^']*)'".r
+
+  def term_query = fieldwithoutstar ~ "=" ~ string
 
   /** select statement */
   def select: Parser[Select] = "select" ~ selectList ~ "from" ~ source ~ limit ^^ {
@@ -40,7 +47,7 @@ class SimpleParser extends JavaTokenParsers {
   }
 
   /** delete statement */
-  def delete: Parser[Delete] = "delete from" ~ source  ^^ {
+  def delete: Parser[Delete] = "delete from" ~ source ^^ {
     case "delete from" ~ s => Delete(s)
   }
 
@@ -48,7 +55,7 @@ class SimpleParser extends JavaTokenParsers {
 
   def exit: Parser[Exit] = "exit" ^^^ Exit()
 
-  def statement: Parser[Statement] = (select | delete | exit | empty) <~ ";" 
+  def statement: Parser[Statement] = (select | delete | exit | empty) <~ ";"
 }
 
 object SimpleParser extends SimpleParser {

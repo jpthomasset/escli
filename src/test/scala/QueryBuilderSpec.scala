@@ -38,6 +38,12 @@ class QueryBuilderSpec extends WordSpec with Matchers {
       }
     }
 
+    "build a request based on a select query with limit" in {
+      assertResult(Some(Request("/someindex/_search", RequestBody(None, Some(2), None)))) {
+        QueryBuilder.build(Select(AllFields(), Source("someindex", None), Some(Limit(2))))
+      }
+    }
+
     "ignore an empty query" in {
       assertResult(None) {
         QueryBuilder.build(Empty())
