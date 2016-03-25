@@ -57,7 +57,6 @@ class SimpleParserSpec extends WordSpec with Matchers {
     }
   }
 
-
   "A 'source' parser" should {
     "parse a simple index" in {
       assertParseResult(source, "someindexname", Source("someindexname", None))
@@ -72,7 +71,6 @@ class SimpleParserSpec extends WordSpec with Matchers {
     }
   }
 
-
   "A 'select' parser" should {
     "parse a simple query from an index" in {
       assertParseResult(select, "select * from someindex", Select(AllFields(), Source("someindex", None)))
@@ -84,9 +82,11 @@ class SimpleParserSpec extends WordSpec with Matchers {
     }
 
     "parse a query with multiple fields and index with type" in {
-      assertParseResult(select,
+      assertParseResult(
+        select,
         "select field1, field2, field3 from someindex with type mytype",
-        Select(Fields("field1" :: "field2" :: "field3" :: Nil), Source("someindex", Some("mytype"))))
+        Select(Fields("field1" :: "field2" :: "field3" :: Nil), Source("someindex", Some("mytype")))
+      )
     }
   }
 
@@ -107,6 +107,12 @@ class SimpleParserSpec extends WordSpec with Matchers {
 
   }
 
+  "A 'limit' parser" should {
+    "parse a 'limit' keyword" in {
+      assertParseResult(SimpleParser.limit, "limit 4", Some(Limit(4)))
+    }
+  }
+
   "A 'statement' parser" should {
     "parse a delete query" in {
       assertParseResult(statement, "delete from someindexname;", Delete(Source("someindexname", None)))
@@ -116,14 +122,18 @@ class SimpleParserSpec extends WordSpec with Matchers {
       assertParseResult(statement, "select * from someindex;", Select(AllFields(), Source("someindex", None)))
     }
 
-    "parse an empty query" in {
+    "parse a select query with limit" in {
+      assertParseResult(statement, "select * from someindex limit 12;", Select(AllFields(), Source("someindex", None), Some(Limit(12))))
+    }
+
+    "Parse an empty query" in {
       assertParseResult(statement, ";", Empty())
     }
 
     "parse an exit command" in {
       assertParseResult(statement, "exit;", Exit())
     }
-    
+
   }
 
 }

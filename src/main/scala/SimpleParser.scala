@@ -30,9 +30,13 @@ class SimpleParser extends JavaTokenParsers {
   /** define what to select in a select statement */
   def selectList: Parser[SelectList] = star | fields
 
+  def limit: Parser[Option[Limit]] = ("limit" ~ wholeNumber ^^ {
+    case "limit" ~ i => Some(Limit(i.toInt))
+      }) | ("" ^^^ (None))
+
   /** select statement */
-  def select: Parser[Select] = "select" ~ selectList ~ "from" ~ source  ^^ {
-    case "select" ~ l ~ "from" ~ s => Select(l, s)
+  def select: Parser[Select] = "select" ~ selectList ~ "from" ~ source ~ limit ^^ {
+    case "select" ~ lst ~ "from" ~ src ~ lmt => Select(lst, src, lmt)
   }
 
   /** delete statement */
