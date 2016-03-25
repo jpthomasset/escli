@@ -30,6 +30,7 @@ Basic DSL -> AST for querying
 - Add test on CommandHandler
 - Add test on ElasticJsonPrinter
 - Refactor CommandHandler printing methods
+- Add Signal Handler to handle CTRL+C when issuing a query
 - Add 'explain' keyword to get raw json query performed against ES
 - Add 'explain result' to get raw json result
 - Add limit keyword

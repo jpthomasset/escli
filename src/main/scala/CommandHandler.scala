@@ -1,44 +1,18 @@
 package escli
 
 
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-import akka.http.scaladsl.model.MediaTypes._
-
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.concurrent.duration._
 
-import akka.actor.ActorSystem
-import akka.stream.ActorMaterializer
-
-import spray.json._
-
 import escli.ElasticJson._
-import escli.ElasticJsonProtocol._
 
-class CommandHandler(val baseUrl: String, val makeRequest: (HttpRequest) => Future[HttpResponse])(implicit system: ActorSystem, materializer: ActorMaterializer)extends SimpleParser {
 
-  implicit val ec = system.dispatcher
+class CommandHandler(val makeRequest: (Request) => Future[ElasticResponse])(implicit val ec:ExecutionContext) extends SimpleParser {
 
   def request(r: Request) = {
-    import StatusCodes._
-
-    val body = HttpEntity(`application/json`, r.body.toJson.toString)
-    val httpRequest = HttpRequest(HttpMethods.POST, baseUrl + r.path, Nil, body)
 
     val f =
-      makeRequest(httpRequest)
-        .recover {
-          case t => HttpResponse(StatusCodes.InternalServerError, entity = t.getMessage)
-        }
-        .map(r => r.status match {
-          case OK => Unmarshal(r.entity).to[SearchResponse]
-          case NotFound => Unmarshal(r.entity).to[ErrorResponse]
-          case BadRequest => Unmarshal(r.entity).to[ErrorResponse]
-          case _ => Unmarshal(r.entity).to[String].map(ErrorResponse(_, -1))
-        })
-        .flatMap(identity)
+      makeRequest(r)
         .map({
           case x: SearchResponse => ElasticJsonPrinter.StdOut.print(r, x)
           case x => println(x)
@@ -49,13 +23,13 @@ class CommandHandler(val baseUrl: String, val makeRequest: (HttpRequest) => Futu
 
 
 
-  def handleStatement(s: String) = {
+  def handleStatement(s: String): Boolean = {
     parse(statement, s) match {
       case Success(r, _) => r match {
-        case AST.Exit() => println("Exiting...")
-        case _ => QueryBuilder.build(r).map(request)
+        case AST.Exit() => println("Exiting...") ; false;
+        case _ => QueryBuilder.build(r).map(request) ; true;
       }
-      case e => println("Parse error: " + e)
+      case e => println("Parse error: " + e) ; true
     }
   }
 

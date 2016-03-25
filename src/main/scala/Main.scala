@@ -14,7 +14,8 @@ object Main extends SimpleParser {
     implicit val materializer = ActorMaterializer()
     implicit val ec = system.dispatcher
 
-    val handler = new CommandHandler(baseUrl, Http().singleRequest(_))
+    val qexec = new QueryExecutor(baseUrl, Http().singleRequest(_))
+    val handler = new CommandHandler(qexec.request)
 
     try {
       CommandScanner(Terminal("escli> ").scan())
