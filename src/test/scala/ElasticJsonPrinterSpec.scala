@@ -100,6 +100,20 @@ class ElasticJsonPrinterSpec extends WordSpec with Matchers {
       printer.print(hits, "key1" :: "key2" :: Nil)
       sb.toString() should be(expectedResult)
     }
+
+    "ignore wildcard in column definition" in {
+      val expectedResult =
+        "+-------------------------------------------------------------+\n" +
+        "| key1                                                        |\n" +
+        "+-------------------------------------------------------------+\n" +
+        "| very long value over 40 chars (bla bla bla bla bla bla bla) |\n" +
+        "| very long value over 40 chars (bla bla bla bla bla bla bla) |\n" +
+        "+-------------------------------------------------------------+\n"
+
+      sb.clear()
+      printer.print(hits, "k*" :: "o*" :: Nil)
+      sb.toString() should be(expectedResult)
+    }
   }
 
 }

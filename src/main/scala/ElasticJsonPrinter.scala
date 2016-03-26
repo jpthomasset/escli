@@ -57,7 +57,9 @@ class ElasticJsonPrinter(output: String => Unit) {
 
       val detectedCols = columns.map { case (col, _) => col }.filterNot(queryCols.toSet)
 
-      val orderedCols = queryCols ++ detectedCols
+      // Filter out queryCols containing wildcards as the true column names
+      // will be found in detectedCols
+      val orderedCols = queryCols.filter(!_.contains("*")) ++ detectedCols
 
       /** Utility to print a row of separator, header or data (Hit) */
       def printRow(f: (String) => String, pad: String, sep: String) = {
