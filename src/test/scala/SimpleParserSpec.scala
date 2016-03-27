@@ -136,8 +136,18 @@ class SimpleParserSpec extends WordSpec with Matchers {
     }
 
     "parse a select query with limit" in {
-      assertParseResult(statement, "select * from someindex limit 12;", Select(AllFields(), Source("someindex", None), Some(Limit(12))))
+      assertParseResult(
+        statement,
+        "select * from someindex limit 12;",
+        Select(AllFields(), Source("someindex", None), None, Some(Limit(12))))
     }
+
+    "Parse a select query with a where clause" in {
+      assertParseResult(
+        statement,
+        "select * from someindex where field1=12 limit 12;",
+        Select(AllFields(), Source("someindex", None), Some(ComparisonCondition("field1", AST.eq, 12)), Some(Limit(12))))
+      }
 
     "Parse an empty query" in {
       assertParseResult(statement, ";", Empty())

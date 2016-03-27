@@ -6,7 +6,7 @@ import ElasticJson._
 object QueryBuilder {
   def build(statement: Statement): Option[Request] = {
     statement match {
-      case Select(list, source, limit) =>
+      case Select(list, source, where, limit) =>
         Some(Request(build(source), RequestBody(None, limit.map(_.size), build(list))))
       case _ => None
       }

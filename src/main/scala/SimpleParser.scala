@@ -78,11 +78,15 @@ class SimpleParser extends JavaTokenParsers {
 
   def and_condition: Parser[AndCondition] = expression ~ "(?i)and".r ~ expression ^^ {
     case c1 ~ and ~ c2 => AndCondition(c1::c2::Nil)
-    }
+  }
+
+  def where_clause: Parser[Option[Condition]] =
+    ("(?i)where".r ~ expression ^^ { case where ~ expr => Some(expr) }) |
+    ( "" ^^^ None)
 
   /** select statement */
-  def select: Parser[Select] = "(?i)select".r ~ selectList ~ "(?i)from".r ~ source ~ limit ^^ {
-    case select ~ lst ~ from ~ src ~ lmt => Select(lst, src, lmt)
+  def select: Parser[Select] = "(?i)select".r ~ selectList ~ "(?i)from".r ~ source ~ where_clause ~ limit  ^^ {
+    case select ~ lst ~ from ~ src ~ where ~ lmt => Select(lst, src, where, lmt)
   }
 
   /** delete statement */

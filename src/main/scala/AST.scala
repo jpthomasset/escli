@@ -33,7 +33,7 @@ object AST {
 
   sealed trait Statement
 
-  case class Select(selectList: SelectList, source: Source, limit: Option[Limit] = None) extends Statement
+  case class Select(selectList: SelectList, source: Source, where:Option[Condition] = None, limit: Option[Limit] = None) extends Statement
   case class Delete(source: Source) extends Statement
   case class Empty() extends Statement
 
