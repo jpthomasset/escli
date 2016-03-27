@@ -14,6 +14,23 @@ object AST {
 
   case class Limit(size: Int)
 
+  sealed trait Operator
+
+  case object eq extends Operator
+  case object gt extends Operator
+  case object lt extends Operator
+  case object gte extends Operator
+  case object lte extends Operator
+
+  sealed trait Condition
+
+  case class TermCondition(field: String, term: String) extends Condition
+  case class TermsCondition(field: String, terms: List[String]) extends Condition
+  case class ComparisonCondition(field: String, operator: Operator, number: Double) extends Condition
+  case class RangeCondition(field: String, min: Double, max: Double) extends Condition
+  case class OrCondition(conditions: List[Condition]) extends Condition
+  case class AndCondition(conditions: List[Condition]) extends Condition
+
   sealed trait Statement
 
   case class Select(selectList: SelectList, source: Source, limit: Option[Limit] = None) extends Statement
