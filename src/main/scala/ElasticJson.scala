@@ -17,9 +17,12 @@ object ElasticJson {
   case class Request(path: String, body: RequestBody)
   case class RequestBody(from: Option[Int], size: Option[Int], _source: Option[Array[String]])
 
-  case class TermQuery(field: String, value: String)
-  case class TermsQuery(field: String, values: List[String])
-  case class RangeQuery(field: String, gte: Option[Double], gt: Option[Double], lte: Option[Double], lt: Option[Double])
+  sealed trait QueryClause
+  case class TermQuery(field: String, value: String) extends QueryClause
+  case class TermsQuery(field: String, values: List[String]) extends QueryClause
+  case class RangeQuery(field: String, gte: Option[Double], gt: Option[Double], lte: Option[Double], lt: Option[Double]) extends QueryClause
+
+  case class BoolQuery(must: Array[QueryClause], filter: Array[QueryClause], should: Array[QueryClause], must_not: Array[QueryClause]) extends QueryClause
 
 }
 
