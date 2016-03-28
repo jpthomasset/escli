@@ -33,7 +33,7 @@ Basic DSL -> AST for querying
 - Add Signal Handler to handle CTRL+C when issuing a query
 - Add 'explain' keyword to get raw json query performed against ES
 - Add 'explain result' to get raw json result
-- Add limit keyword
+- Add offset keyword
 - Use external pager for output (as in mysql)
 
 
