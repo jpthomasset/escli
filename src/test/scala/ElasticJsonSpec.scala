@@ -67,14 +67,29 @@ class ElasticJsonSpec extends WordSpec with Matchers {
       query.toJson.toString should be("""{"field1":"term1"}""")
     }
 
+    "generate a generic QueryClause for term query" in {
+      val query:QueryClause = TermQuery("field1", "term1")
+      query.toJson.toString should be ("""{"term":{"field1":"term1"}}""")
+      }
+
     "generate a terms query" in {
       val query = TermsQuery("field1", List("term1", "term2", "term3", "term4"))
       query.toJson.toString should be("""{"field1":["term1","term2","term3","term4"]}""")
     }
 
+    "generate a generic QueryClause for terms query" in {
+      val query:QueryClause = TermsQuery("field1", List("term1", "term2", "term3", "term4"))
+      query.toJson.toString should be ("""{"terms":{"field1":["term1","term2","term3","term4"]}}""")
+      }
+
     "generate a range query" in {
       val query = RangeQuery("field1", Some(5.0), None, Some(15), None)
       query.toJson.toString should be("""{"field1":{"gte":5.0,"lte":15.0}}""")
     }
+
+    "generate a generic QueryClause for range query" in {
+      val query:QueryClause = RangeQuery("field1", Some(5.0), None, Some(15), None)
+      query.toJson.toString should be ("""{"range":{"field1":{"gte":5.0,"lte":15.0}}}""")
+      }
   }
 }
