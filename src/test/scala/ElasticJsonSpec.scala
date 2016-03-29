@@ -7,16 +7,15 @@ import escli.ElasticJsonProtocol._
 
 class ElasticJsonSpec extends WordSpec with Matchers {
 
+  val jsonShard = """{"total":5,"successful":5,"failed":0}"""
 
-  val jsonShard = """{"total":5,"successful":5,"failed":0}""" 
-
-  val source  = """{
+  val source = """{
           "user" : "kimchy",
           "post_date" : "2009-11-15T14:12:12",
           "message" : "trying out Elasticsearch"
         }"""
 
-  val jsonHit =  """{"_index":"twitter","_type":"tweet","_id":"1","_score":1.0,"_source":""" + source + """}"""
+  val jsonHit = """{"_index":"twitter","_type":"tweet","_id":"1","_score":1.0,"_source":""" + source + """}"""
 
   val jsonHits = """{"total":1,"max_score":1.0,"hits":[""" + jsonHit + """]}"""
 
@@ -38,29 +37,44 @@ class ElasticJsonSpec extends WordSpec with Matchers {
     }
 
     "parse a Hits json" in {
-      val hits = jsonHits.parseJson.convertTo[Hits] 
+      val hits = jsonHits.parseJson.convertTo[Hits]
       hits should have {
-        'total (1)
-        'max_score (1.0)
+        'total(1)
+        'max_score(1.0)
       }
 
-      hits.hits.length should be (1) 
+      hits.hits.length should be(1)
     }
 
     "parse a SearchResponse json" in {
-      val response = jsonResponse.parseJson.convertTo[SearchResponse] 
+      val response = jsonResponse.parseJson.convertTo[SearchResponse]
       response should have {
-        'took (1)
-        'timed_out (false)
+        'took(1)
+        'timed_out(false)
       }
     }
 
     "parse an ErrorResponse json" in {
-      val response = jsonError.parseJson.convertTo[ErrorResponse] 
+      val response = jsonError.parseJson.convertTo[ErrorResponse]
       response should have {
-        'error ("IndexMissingException[[account] missing]")
-        'status (404)
+        'error("IndexMissingException[[account] missing]")
+        'status(404)
       }
+    }
+
+    "generate a term query" in {
+      val query = TermQuery("field1", "term1")
+      query.toJson.toString should be("""{"field1":"term1"}""")
+    }
+
+    "generate a terms query" in {
+      val query = TermsQuery("field1", List("term1", "term2", "term3", "term4"))
+      query.toJson.toString should be("""{"field1":["term1","term2","term3","term4"]}""")
+    }
+
+    "generate a range query" in {
+      val query = RangeQuery("field1", Some(5.0), None, None, None)
+      query.toJson.toString should be("""{"field1":["term1","term2","term3","term4"]}""")
     }
   }
 }

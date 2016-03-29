@@ -38,7 +38,7 @@ object ElasticJsonProtocol extends DefaultJsonProtocol {
   implicit val requestBodyFormat = jsonFormat3(RequestBody)
 
   implicit def termQueryFormat = new RootJsonFormat[TermQuery] {
-    def write(term: TermQuery) = (term.field -> term.value).toJson
+    def write(term: TermQuery) = Map(term.field -> term.value).toJson
     def read(value: JsValue) = value match {
       case JsObject(o) => TermQuery(o.head._1, o.head._2.convertTo[String])
       case x => deserializationError("Unexpected Term Query object: " + x)
@@ -46,7 +46,7 @@ object ElasticJsonProtocol extends DefaultJsonProtocol {
   }
 
   implicit def termsQueryFormat = new RootJsonFormat[TermsQuery] {
-    def write(term: TermsQuery) = (term.field -> term.values).toJson
+    def write(term: TermsQuery) = Map(term.field -> term.values).toJson
     def read(value: JsValue) = value match {
       case JsObject(o) => o.head._2 match {
         case JsArray(v) => TermsQuery(o.head._1, v.map(_.convertTo[String]).toList)
@@ -58,7 +58,7 @@ object ElasticJsonProtocol extends DefaultJsonProtocol {
 
   implicit def rangeQueryFormat = new RootJsonFormat[RangeQuery] {
     def write(range: RangeQuery) =
-      (range.field -> Map(
+      Map(range.field -> Map(
         "gte" -> range.gte,
         "gt" -> range.gt,
         "lte" -> range.lte,
@@ -68,11 +68,33 @@ object ElasticJsonProtocol extends DefaultJsonProtocol {
       case JsObject(o) =>
         val field = o.head._1
         val map = o.head._2.asInstanceOf[JsObject]
-        def getVal(key:String): Option[Double] = map.fields.get(key).map(_.convertTo[Double])
-        
+        def getVal(key: String): Option[Double] = map.fields.get(key).map(_.convertTo[Double])
+
         RangeQuery(field, getVal("gte"), getVal("gt"), getVal("lte"), getVal("lt"))
-      case x =>  deserializationError("Unexpected Range Query object: " + x)
+      case x => deserializationError("Unexpected Range Query object: " + x)
     }
   }
 
+  implicit def queryClauseFormat = new RootJsonFormat[QueryClause] {
+    def write(query: QueryClause) = query match {
+      case x: TermQuery => Map("term" -> x).toJson
+      case x: TermsQuery => Map("terms" -> x).toJson
+      case x: RangeQuery => Map("range" -> x).toJson
+      case x: BoolQuery => Map("bool" -> x).toJson
+    }
+
+    def read(value: JsValue) = value match {
+      case JsObject(o) if o.size == 1 =>
+        o.head._1 match {
+          case "term" => o.head._2.convertTo[TermQuery]
+          case "terms" => o.head._2.convertTo[TermsQuery]
+          case "range" => o.head._2.convertTo[RangeQuery]
+          case "bool" => o.head._2.convertTo[BoolQuery]
+        }
+
+      case x => deserializationError("Unexpected Bool Query object: " + x)
+    }
+  }
+
+  implicit val boolQueryFormat: JsonFormat[BoolQuery] = lazyFormat(jsonFormat(BoolQuery, "must", "filter", "should", "must_not"))
 }
