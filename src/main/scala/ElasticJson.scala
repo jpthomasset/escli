@@ -22,7 +22,9 @@ object ElasticJson {
   case class TermsQuery(field: String, values: List[String]) extends QueryClause
   case class RangeQuery(field: String, gte: Option[Double], gt: Option[Double], lte: Option[Double], lt: Option[Double]) extends QueryClause
 
-  case class BoolQuery(must: Array[QueryClause], filter: Array[QueryClause], should: Array[QueryClause], must_not: Array[QueryClause]) extends QueryClause
+  case class BoolQuery(must: Option[Array[QueryClause]], filter: Option[Array[QueryClause]], should: Option[Array[QueryClause]], must_not: Option[Array[QueryClause]]) extends QueryClause
+
+
 
 }
 

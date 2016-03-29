@@ -91,5 +91,15 @@ class ElasticJsonSpec extends WordSpec with Matchers {
       val query:QueryClause = RangeQuery("field1", Some(5.0), None, Some(15), None)
       query.toJson.toString should be ("""{"range":{"field1":{"gte":5.0,"lte":15.0}}}""")
       }
+
+    "generate a bool query" in {
+      val query = BoolQuery(
+        Some(Array(TermQuery("field1", "value1"))),
+        None,
+        Some(Array(RangeQuery("field2", Some(12.345), None, None, None))),
+        None)
+
+      query.toJson.toString should be ("""{must:[{"field1":"value1"},should:[{"field2":{"gte":12.345}]}""")
+      }
   }
 }
