@@ -73,8 +73,8 @@ class ElasticJsonSpec extends WordSpec with Matchers {
     }
 
     "generate a range query" in {
-      val query = RangeQuery("field1", Some(5.0), None, None, None)
-      query.toJson.toString should be("""{"field1":["term1","term2","term3","term4"]}""")
+      val query = RangeQuery("field1", Some(5.0), None, Some(15), None)
+      query.toJson.toString should be("""{"field1":{"gte":5.0,"lte":15.0}}""")
     }
   }
 }

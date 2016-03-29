@@ -57,13 +57,21 @@ object ElasticJsonProtocol extends DefaultJsonProtocol {
   }
 
   implicit def rangeQueryFormat = new RootJsonFormat[RangeQuery] {
-    def write(range: RangeQuery) =
-      Map(range.field -> Map(
-        "gte" -> range.gte,
-        "gt" -> range.gt,
-        "lte" -> range.lte,
-        "lt" -> range.lt
-      )).toJson
+    def toJsField(key: String, value: Option[Double]): Map[String, JsValue] = value match {
+      case Some(x) => Map(key -> x.toJson)
+      case None => Map.empty
+    }
+
+    def write(range: RangeQuery) = {
+      val fields =JsObject(
+        toJsField("gte", range.gte) ++
+          toJsField("gt", range.gt) ++
+          toJsField("lte", range.lte) ++
+          toJsField("lt", range.lt))
+
+      JsObject((range.field, fields))
+    }
+
     def read(value: JsValue) = value match {
       case JsObject(o) =>
         val field = o.head._1
