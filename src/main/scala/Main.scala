@@ -19,8 +19,12 @@ object Main extends SimpleParser {
 
     try {
       CommandScanner(Terminal("escli> ").scan())
-        .foreach(handler.handleStatement)
-    } finally {
+        .map(w => handler.handleStatement(w))
+        .takeWhile(identity)
+        .foreach(_ => {})
+
+    }
+    finally {
       Terminal.shutdown()
       Http().shutdownAllConnectionPools() andThen { case _ => system.terminate() }
     }
