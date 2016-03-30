@@ -67,8 +67,8 @@ class ElasticJsonSpec extends WordSpec with Matchers {
       query.toJson.toString should be("""{"field1":"term1"}""")
     }
 
-    "generate a generic QueryClause for term query" in {
-      val query:QueryClause = TermQuery("field1", "term1")
+    "generate a generic TypedQuery for term query" in {
+      val query = TypedQuery(TermQuery("field1", "term1"))
       query.toJson.toString should be ("""{"term":{"field1":"term1"}}""")
       }
 
@@ -77,8 +77,8 @@ class ElasticJsonSpec extends WordSpec with Matchers {
       query.toJson.toString should be("""{"field1":["term1","term2","term3","term4"]}""")
     }
 
-    "generate a generic QueryClause for terms query" in {
-      val query:QueryClause = TermsQuery("field1", List("term1", "term2", "term3", "term4"))
+    "generate a generic TypedQuery for terms query" in {
+      val query = TypedQuery(TermsQuery("field1", List("term1", "term2", "term3", "term4")))
       query.toJson.toString should be ("""{"terms":{"field1":["term1","term2","term3","term4"]}}""")
       }
 
@@ -87,19 +87,29 @@ class ElasticJsonSpec extends WordSpec with Matchers {
       query.toJson.toString should be("""{"field1":{"gte":5.0,"lte":15.0}}""")
     }
 
-    "generate a generic QueryClause for range query" in {
-      val query:QueryClause = RangeQuery("field1", Some(5.0), None, Some(15), None)
+    "generate a generic TypedQuery for range query" in {
+      val query = TypedQuery(RangeQuery("field1", Some(5.0), None, Some(15), None))
       query.toJson.toString should be ("""{"range":{"field1":{"gte":5.0,"lte":15.0}}}""")
       }
 
     "generate a bool query" in {
       val query = BoolQuery(
-        Some(Array(TermQuery("field1", "value1"))),
+        Some(Array(TypedQuery(TermQuery("field1", "value1")))),
         None,
-        Some(Array(RangeQuery("field2", Some(12.345), None, None, None))),
+        Some(Array(TypedQuery(RangeQuery("field2", Some(12.345), None, None, None)))),
         None)
 
-      query.toJson.toString should be ("""{must:[{"field1":"value1"},should:[{"field2":{"gte":12.345}]}""")
+      query.toJson.toString should be ("""{"must":[{"term":{"field1":"value1"}}],"should":[{"range":{"field2":{"gte":12.345}}}]}""")
+    }
+
+    "generate a TypedQuery for bool query" in {
+      val query = TypedQuery(BoolQuery(
+        Some(Array(TypedQuery(TermQuery("field1", "value1")))),
+        None,
+        Some(Array(TypedQuery(RangeQuery("field2", Some(12.345), None, None, None)))),
+        None))
+
+      query.toJson.toString should be ("""{"bool":{"must":[{"term":{"field1":"value1"}}],"should":[{"range":{"field2":{"gte":12.345}}}]}}""")
       }
   }
 }

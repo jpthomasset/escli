@@ -18,11 +18,12 @@ object ElasticJson {
   case class RequestBody(from: Option[Int], size: Option[Int], _source: Option[Array[String]])
 
   sealed trait QueryClause
+  case class TypedQuery(clause:QueryClause)
   case class TermQuery(field: String, value: String) extends QueryClause
   case class TermsQuery(field: String, values: List[String]) extends QueryClause
   case class RangeQuery(field: String, gte: Option[Double], gt: Option[Double], lte: Option[Double], lt: Option[Double]) extends QueryClause
 
-  case class BoolQuery(must: Option[Array[QueryClause]], filter: Option[Array[QueryClause]], should: Option[Array[QueryClause]], must_not: Option[Array[QueryClause]]) extends QueryClause
+  case class BoolQuery(must: Option[Array[TypedQuery]], filter: Option[Array[TypedQuery]], should: Option[Array[TypedQuery]], must_not: Option[Array[TypedQuery]]) extends QueryClause
 
 
 
@@ -85,8 +86,9 @@ object ElasticJsonProtocol extends DefaultJsonProtocol {
     }
   }
 
-  implicit def queryClauseFormat = new RootJsonFormat[QueryClause] {
-    def write(query: QueryClause) = query match {
+
+  implicit def typedQueryFormat = new RootJsonFormat[TypedQuery] {
+    def write(q: TypedQuery) = q.clause match {
       case x: TermQuery => Map("term" -> x).toJson
       case x: TermsQuery => Map("terms" -> x).toJson
       case x: RangeQuery => Map("range" -> x).toJson
@@ -96,15 +98,15 @@ object ElasticJsonProtocol extends DefaultJsonProtocol {
     def read(value: JsValue) = value match {
       case JsObject(o) if o.size == 1 =>
         o.head._1 match {
-          case "term" => o.head._2.convertTo[TermQuery]
-          case "terms" => o.head._2.convertTo[TermsQuery]
-          case "range" => o.head._2.convertTo[RangeQuery]
-          case "bool" => o.head._2.convertTo[BoolQuery]
+          case "term" => TypedQuery(o.head._2.convertTo[TermQuery])
+          case "terms" => TypedQuery(o.head._2.convertTo[TermsQuery])
+          case "range" => TypedQuery(o.head._2.convertTo[RangeQuery])
+          case "bool" => TypedQuery(o.head._2.convertTo[BoolQuery])
         }
 
       case x => deserializationError("Unexpected Bool Query object: " + x)
     }
   }
 
-  implicit val boolQueryFormat: JsonFormat[BoolQuery] = lazyFormat(jsonFormat(BoolQuery, "must", "filter", "should", "must_not"))
+  implicit val boolQueryFormat: JsonFormat[BoolQuery] = lazyFormat(jsonFormat4(BoolQuery))
 }
