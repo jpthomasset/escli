@@ -15,7 +15,7 @@ object ElasticJson {
 
   /** Request objects */
   case class Request(path: String, body: RequestBody)
-  case class RequestBody(from: Option[Int], size: Option[Int], _source: Option[Array[String]])
+  case class RequestBody(from: Option[Int], size: Option[Int], _source: Option[Array[String]], query: Option[TypedQuery])
 
   sealed trait QueryClause
   case class TypedQuery(clause:QueryClause)
@@ -37,8 +37,6 @@ object ElasticJsonProtocol extends DefaultJsonProtocol {
   implicit val hitsFormat = jsonFormat3(Hits)
   implicit val searchResponseFormat = jsonFormat4(SearchResponse)
   implicit val errorResponseFormat = jsonFormat2(ErrorResponse)
-
-  implicit val requestBodyFormat = jsonFormat3(RequestBody)
 
   implicit def termQueryFormat = new RootJsonFormat[TermQuery] {
     def write(term: TermQuery) = Map(term.field -> term.value).toJson
@@ -109,4 +107,8 @@ object ElasticJsonProtocol extends DefaultJsonProtocol {
   }
 
   implicit val boolQueryFormat: JsonFormat[BoolQuery] = lazyFormat(jsonFormat4(BoolQuery))
+
+  implicit val requestBodyFormat = jsonFormat4(RequestBody)
+
+
 }

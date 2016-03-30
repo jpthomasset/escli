@@ -33,14 +33,20 @@ class QueryBuilderSpec extends WordSpec with Matchers {
     }
 
     "build a request based on a select query" in {
-      assertResult(Some(Request("/someindex/_search", RequestBody(None, None, None)))) {
+      assertResult(Some(Request("/someindex/_search", RequestBody(None, None, None, None)))) {
         QueryBuilder.build(Select(AllFields(), Source("someindex", None)))
       }
     }
 
     "build a request based on a select query with limit" in {
-      assertResult(Some(Request("/someindex/_search", RequestBody(None, Some(2), None)))) {
+      assertResult(Some(Request("/someindex/_search", RequestBody(None, Some(2), None, None)))) {
         QueryBuilder.build(Select(AllFields(), Source("someindex", None), None, Some(Limit(2))))
+      }
+    }
+
+    "build a request based on a query with a term condition" in {
+      assertResult(Some(Request("/someindex/_search", RequestBody(None, None, None, Some(TypedQuery(TermQuery("field", "value"))))))) {
+        QueryBuilder.build(Select(AllFields(), Source("someindex", None), Some(TermCondition("field", "value"))))
       }
     }
 
