@@ -154,7 +154,7 @@ class SimpleParserSpec extends WordSpec with Matchers {
     }
 
     "parse an exit command" in {
-      assertParseResult(statement, "exit;", Exit())
+      assertParseResult(command, "exit;", Exit())
     }
 
   }

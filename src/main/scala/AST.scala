@@ -31,13 +31,14 @@ object AST {
   case class OrCondition(conditions: List[Condition]) extends Condition
   case class AndCondition(conditions: List[Condition]) extends Condition
 
-  sealed trait Statement
+  sealed trait Command
+  sealed trait Statement extends Command
 
   case class Select(selectList: SelectList, source: Source, where:Option[Condition] = None, limit: Option[Limit] = None) extends Statement
   case class Delete(source: Source) extends Statement
   case class Empty() extends Statement
 
-
-  case class Exit() extends Statement
+  case class Exit() extends Command
+  case class Explain(s:Statement) extends Command
 }
 
