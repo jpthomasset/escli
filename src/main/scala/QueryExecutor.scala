@@ -21,7 +21,7 @@ class QueryExecutor(val baseUrl: String, val makeRequest: (HttpRequest) => Futur
     import StatusCodes._
 
     val body = HttpEntity(`application/json`, r.body.toJson.toString)
-    val httpRequest = HttpRequest(HttpMethods.POST, baseUrl + r.path, Nil, body)
+    val httpRequest = HttpRequest(HttpMethods.GET, baseUrl + r.path, Nil, body)
 
     makeRequest(httpRequest)
       .recover {

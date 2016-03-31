@@ -27,11 +27,11 @@ Basic DSL -> AST for querying
 
 
 # TODO
-- Add test on CommandHandler
+- Refactor and Add test on CommandHandler
 - Add Signal Handler to handle CTRL+C when issuing a query
-- Add 'explain result' to get raw json result
 - Add offset keyword
 - Use external pager for output (as in mysql)
+- Fix pb on terminal when using arrows
 
 
 ## Query Parsing

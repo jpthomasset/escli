@@ -38,6 +38,14 @@ object ElasticJsonProtocol extends DefaultJsonProtocol {
   implicit val searchResponseFormat = jsonFormat4(SearchResponse)
   implicit val errorResponseFormat = jsonFormat2(ErrorResponse)
 
+  implicit def elasticResponseFormat = new RootJsonFormat[ElasticResponse] {
+    def write(e: ElasticResponse) = e match {
+      case o:SearchResponse => o.toJson
+      case o:ErrorResponse => o.toJson
+    }
+    def read(value: JsValue) = ???
+   }
+
   implicit def termQueryFormat = new RootJsonFormat[TermQuery] {
     def write(term: TermQuery) = Map(term.field -> term.value).toJson
     def read(value: JsValue) = value match {

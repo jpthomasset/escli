@@ -25,7 +25,7 @@ class CommandHandler(val makeRequest: (Request) => Future[ElasticResponse])(impl
 
 
   def handleStatement(s: String): Boolean = {
-    parse(command, s) match {
+    parse(s) match {
       case Success(r, _) => r match {
         case AST.Exit() => println("Exiting...") ; false;
         case AST.Explain(x, withResult) => {
@@ -33,7 +33,10 @@ class CommandHandler(val makeRequest: (Request) => Future[ElasticResponse])(impl
             .build(x)
             .foreach(r => {
               println("Query:\n------\n" + r.body.toJson.prettyPrint)
-              if(withResult) makeRequest(r).map(println(_))
+              if(withResult) {
+                val f = makeRequest(r).map(resp => println("Response:\n---------\n" + resp.toJson.prettyPrint))
+                Await.result(f, 5.seconds)
+                }
             })
 
           true

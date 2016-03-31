@@ -8,7 +8,7 @@ class SimpleParserSpec extends WordSpec with Matchers {
   import SimpleParser._
 
   def assertParseResult[T](p: Parser[T], in: CharSequence, expected: T) = {
-    val r = parse(p, in)
+    val r = packParse(p, in)
     r match {
       case Success(ast, _) => assertResult(expected)(ast)
       case x => fail(x.toString)
@@ -17,11 +17,11 @@ class SimpleParserSpec extends WordSpec with Matchers {
 
   "A field name parser" should {
     "allow alphanumeric chars" in {
-      assertParseResult(field, "aabb.", "aabb")
+      assertParseResult(field, "aabb", "aabb")
     }
 
     "allow dot in the middle" in {
-      assertParseResult(field, "aa.bb.", "aa.bb")
+      assertParseResult(field, "aa.bb", "aa.bb")
     }
 
     "ignore dot with no trailing name" in {
@@ -132,29 +132,29 @@ class SimpleParserSpec extends WordSpec with Matchers {
 
   "A 'statement' parser" should {
     "parse a delete query" in {
-      assertParseResult(statement, "delete from someindexname;", Delete(Source("someindexname", None)))
+      assertParseResult(statement, "delete from someindexname", Delete(Source("someindexname", None)))
     }
 
     "parse a select query" in {
-      assertParseResult(statement, "select * from someindex;", Select(AllFields(), Source("someindex", None)))
+      assertParseResult(statement, "select * from someindex", Select(AllFields(), Source("someindex", None)))
     }
 
     "parse a select query with limit" in {
       assertParseResult(
         statement,
-        "select * from someindex limit 12;",
+        "select * from someindex limit 12",
         Select(AllFields(), Source("someindex", None), None, Some(Limit(12))))
     }
 
     "Parse a select query with a where clause" in {
       assertParseResult(
         statement,
-        "select * from someindex where field1=12 limit 12;",
+        "select * from someindex where field1=12 limit 12",
         Select(AllFields(), Source("someindex", None), Some(ComparisonCondition("field1", AST.eq, 12)), Some(Limit(12))))
       }
 
-    "Parse an empty query" in {
-      assertParseResult(statement, ";", Empty())
+    "Parse an empty statement" in {
+      assertParseResult(statement, "", Empty())
     }
 
     "parse an exit command" in {
@@ -257,6 +257,16 @@ class SimpleParserSpec extends WordSpec with Matchers {
     "parse an 'and' condition" in {
       assertParseResult(
         and_condition,
+        "field1=42 AND field2='forty-two'",
+        AndCondition(
+          List(ComparisonCondition("field1", AST.eq, 42), TermCondition("field2", "forty-two"))
+        )
+      )
+    }
+
+    "parse a mix of 'or' and 'and' condition" in {
+      assertParseResult(
+        expression,
         "field1=42 AND field2='forty-two'",
         AndCondition(
           List(ComparisonCondition("field1", AST.eq, 42), TermCondition("field2", "forty-two"))

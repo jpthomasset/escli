@@ -2,11 +2,12 @@ package escli
 
 import scala.util.parsing.combinator._
 import escli.AST._
+import scala.util.parsing.input.CharSequenceReader
 
 /**
  *  Parser for a language close to SQL for Elastic conditioning
  */
-class SimpleParser extends JavaTokenParsers {
+class SimpleParser extends JavaTokenParsers with PackratParsers {
   /** star in select statement */
   def star: Parser[AllFields] = "*" ^^^ (AllFields())
 
@@ -66,19 +67,19 @@ class SimpleParser extends JavaTokenParsers {
     case f ~ "between" ~ min ~ "and" ~ max => RangeCondition(f, min.toDouble, max.toDouble)
     }
 
-  def condition: Parser[Condition] = term_condition | terms_condition | comparison_condition | range_condition | or_condition | and_condition
+  def predicate: Parser[Condition] = term_condition | terms_condition | comparison_condition | range_condition
 
-  def expression: Parser[Condition] = ("(" ~ condition ~ ")" ^^ {
-    case "(" ~ c ~ ")" => c
-      }) | (condition ^^ { case c => c})
-
-  def or_condition: Parser[OrCondition] = expression ~ "(?i)or".r ~ expression ^^ {
+  lazy val or_condition: PackratParser[OrCondition] = expression ~ "(?i)or".r ~ expression ^^ {
     case c1 ~ or ~ c2 => OrCondition(c1::c2::Nil)
     }
 
-  def and_condition: Parser[AndCondition] = expression ~ "(?i)and".r ~ expression ^^ {
+  lazy val and_condition: PackratParser[AndCondition] = expression ~ "(?i)and".r ~ expression ^^ {
     case c1 ~ and ~ c2 => AndCondition(c1::c2::Nil)
   }
+
+  lazy val simple_expression: PackratParser[Condition] = or_condition | and_condition | predicate
+
+  def expression: Parser[Condition] = simple_expression | "(" ~> simple_expression <~ ")"
 
   def where_clause: Parser[Option[Condition]] =
     ("(?i)where".r ~ expression ^^ { case where ~ expr => Some(expr) }) |
@@ -107,6 +108,11 @@ class SimpleParser extends JavaTokenParsers {
   })
 
   def command: Parser[Command] = (exit | explain | statement) <~ ";"
+
+  def packParse[T](p: Parser[T], in: CharSequence): ParseResult[T] = 
+    phrase(p)(new PackratReader(new CharSequenceReader(in)))
+
+  def parse(in: CharSequence): ParseResult[Command] = packParse(command, in)
 }
 
 object SimpleParser extends SimpleParser {
