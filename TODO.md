@@ -1,43 +1,17 @@
-# Kata
-
-## Problem/Now
-- Hard to query data
-- Hard to create query with filter 
-- Hard to create query with aggregation
-- Hard to update data !
-
-## Awesome
+# What would be awesome
 - Natural language to query elastic (SQL like)
-- Natural language to update
+- Natural language to update/delete
 - Autocomplete
 - UI to query
 - UI to present data
 
-## Next Target
-Basic DSL -> AST for querying
-- [ ] Being able to make a request to ES (not based on a query)
-- [ ] Parse Simple query -> AST 
-- [ ] Transform AST -> ES Query
 
-
-## First steps
-- [X] Decide protocol to connect to ES : HTTP
-- [ ] Run basic query / Display result
-- [ ] Display tabular result
-
-
-# TODO
+# Next steps
 - Refactor and Add test on CommandHandler
 - Add Signal Handler to handle CTRL+C when issuing a query
 - Add offset keyword
 - Use external pager for output (as in mysql)
 - Fix pb on terminal when using arrows
-
-
-## Query Parsing
-- http://kufli.blogspot.fr/2015/01/scala-parser-combinators-sql-parser.html
-- https://github.com/scala/scala-parser-combinators
-
-## Command line parsing
-- http://docopt.org/
-- https://github.com/docopt/docopt.scala
+- handle IN clause with numbers
+- display "\_" metadata with result (\_id, \_index, \_type, \_score)
+- handle program argument cleanly
