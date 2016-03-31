@@ -35,9 +35,12 @@ object QueryBuilder {
         case AST.lt => TypedQuery(RangeQuery(field, None, None, None, Some(value)))
         case AST.gte => TypedQuery(RangeQuery(field, Some(value), None, None, None))
         case AST.lte => TypedQuery(RangeQuery(field, None, None, Some(value), None))
-        }
-
+      }
+      case OrCondition(conditions) => TypedQuery(BoolQuery(None, None, Some(build(conditions)), None))
+      case AndCondition(conditions) => TypedQuery(BoolQuery(Some(build(conditions)), None, None, None))
       case _ => ???
     }
+
+  def build(conditions: List[Condition]): Array[TypedQuery] = conditions.map(c => build(Some(c))).collect({ case Some(q) => q }).toArray
 
 }

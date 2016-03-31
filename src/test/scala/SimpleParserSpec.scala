@@ -63,6 +63,10 @@ class SimpleParserSpec extends WordSpec with Matchers {
       assertParseResult(source, "someindexname", Source("someindexname", None))
     }
 
+    "parse all index regex (*)" in {
+      assertParseResult(source, "*", Source("*", None))
+    }
+
     "parse an index with colon" in {
       assertParseResult(source, "some:index:name", Source("some:index:name", None))
     }
@@ -155,6 +159,14 @@ class SimpleParserSpec extends WordSpec with Matchers {
 
     "parse an exit command" in {
       assertParseResult(command, "exit;", Exit())
+    }
+
+    "parse an explain command" in {
+      assertParseResult(command, "explain select * from *;", Explain(Select(AllFields(), Source("*", None)), false))
+    }
+
+    "parse an explain result command" in {
+      assertParseResult(command, "explain result select * from *;", Explain(Select(AllFields(), Source("*", None)), true))
     }
 
   }

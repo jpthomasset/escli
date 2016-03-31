@@ -28,7 +28,16 @@ class CommandHandler(val makeRequest: (Request) => Future[ElasticResponse])(impl
     parse(command, s) match {
       case Success(r, _) => r match {
         case AST.Exit() => println("Exiting...") ; false;
-        case AST.Explain(x) => QueryBuilder.build(x).map(r => println(r.body.toJson.prettyPrint)); true;
+        case AST.Explain(x, withResult) => {
+          QueryBuilder
+            .build(x)
+            .foreach(r => {
+              println("Query:\n------\n" + r.body.toJson.prettyPrint)
+              if(withResult) makeRequest(r).map(println(_))
+            })
+
+          true
+          }
         case r:AST.Statement => QueryBuilder.build(r).map(request) ; true;
       }
       case e => println("Parse error: " + e) ; true

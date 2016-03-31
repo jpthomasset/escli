@@ -100,9 +100,11 @@ class SimpleParser extends JavaTokenParsers {
 
   def statement: Parser[Statement] = (select | delete | empty)
 
-  def explain: Parser[Explain] = "(?i)explain".r ~ statement ^^ {
-    case explain ~ s => Explain(s)
-  }
+  def explain: Parser[Explain] = ("(?i)explain".r ~ "(?i)result".r ~ statement ^^ {
+    case explain ~ result ~ s => Explain(s, true)
+  }) | ("(?i)explain".r ~ statement ^^ {
+    case explain ~ s => Explain(s, false)
+  })
 
   def command: Parser[Command] = (exit | explain | statement) <~ ";"
 }
