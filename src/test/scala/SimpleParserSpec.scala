@@ -24,8 +24,9 @@ class SimpleParserSpec extends WordSpec with Matchers {
       assertParseResult(field, "aa.bb", "aa.bb")
     }
 
-    "ignore dot with no trailing name" in {
-      assertParseResult(field, "aa.", "aa")
+    "fail if string ends with a dot" in {
+      val r = packParse(field, "aa.")
+      r shouldBe a [Failure]
     }
   }
 
