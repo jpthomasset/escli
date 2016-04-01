@@ -5,7 +5,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 
 
-object Main extends SimpleParser {
+object Main {
   def main(args: Array[String]): Unit = {
 
     val baseUrl = if (args.size > 0) args(0) else "http://127.0.0.1:9200"
@@ -15,6 +15,9 @@ object Main extends SimpleParser {
     implicit val ec = system.dispatcher
 
     val qexec = new QueryExecutor(baseUrl, Http().singleRequest(_))
+    def parse(s:String) = CommandParser
+      .parse(s)
+      .recover { case x => AST.Print(x.getMessage) }
     val handler = new CommandHandler(qexec.request)
     val scanner = CommandScanner(Terminal("escli> ").scan())
 
@@ -22,7 +25,8 @@ object Main extends SimpleParser {
       // as the source is an iterator, we must
       // constantly 'pull' data. This is the reason to
       // use a foreach here
-      scanner.map(handler.handle)
+      scanner.map(parse(_).get)
+        .map(handler.handle)
         .takeWhile(identity) // Continue while handler return true
         .foreach(_ => {}) // Pull from iterator  
 

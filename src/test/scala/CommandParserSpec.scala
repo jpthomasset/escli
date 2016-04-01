@@ -1,11 +1,11 @@
 import org.scalatest._
 
-import escli.SimpleParser
+import escli.CommandParser
 import escli.AST
 import escli.AST._
 
 class SimpleParserSpec extends WordSpec with Matchers {
-  import SimpleParser._
+  import CommandParser._
 
   def assertParseResult[T](p: Parser[T], in: CharSequence, expected: T) = {
     val r = packParse(p, in)
@@ -112,22 +112,22 @@ class SimpleParserSpec extends WordSpec with Matchers {
 
   "An 'empty' parser" should {
     "parse an empty query" in {
-      assertParseResult(SimpleParser.empty, "", Empty())
+      assertParseResult(CommandParser.empty, "", Empty())
     }
 
     "parse a query with only spaces" in {
-      assertParseResult(SimpleParser.empty, "   ", Empty())
+      assertParseResult(CommandParser.empty, "   ", Empty())
     }
 
   }
 
   "A 'limit' parser" should {
     "parse a 'limit' keyword" in {
-      assertParseResult(SimpleParser.limit, "limit 4", Some(Limit(4)))
+      assertParseResult(CommandParser.limit, "limit 4", Some(Limit(4)))
     }
 
     "be case insensitive" in {
-      assertParseResult(SimpleParser.limit, "LiMiT 4", Some(Limit(4)))
+      assertParseResult(CommandParser.limit, "LiMiT 4", Some(Limit(4)))
     }
   }
 

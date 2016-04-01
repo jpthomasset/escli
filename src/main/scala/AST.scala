@@ -39,6 +39,7 @@ object AST {
   case class Empty() extends Statement
 
   case class Exit() extends Command
+  case class Print(s: String) extends Command
   case class Explain(s:Statement, withResult:Boolean = false) extends Command
 }
 

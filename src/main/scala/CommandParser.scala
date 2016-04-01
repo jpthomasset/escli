@@ -1,5 +1,6 @@
 package escli
 
+import scala.util.Try
 import scala.util.parsing.combinator._
 import escli.AST._
 import scala.util.parsing.input.CharSequenceReader
@@ -7,7 +8,7 @@ import scala.util.parsing.input.CharSequenceReader
 /**
  *  Parser for a language close to SQL for Elastic conditioning
  */
-class SimpleParser extends JavaTokenParsers with PackratParsers {
+class CommandParser extends JavaTokenParsers with PackratParsers {
   /** star in select statement */
   def star: Parser[AllFields] = "*" ^^^ (AllFields())
 
@@ -65,16 +66,16 @@ class SimpleParser extends JavaTokenParsers with PackratParsers {
 
   def range_condition: Parser[RangeCondition] = fieldwithoutstar ~ "between" ~ floatingPointNumber ~ "and" ~ floatingPointNumber ^^ {
     case f ~ "between" ~ min ~ "and" ~ max => RangeCondition(f, min.toDouble, max.toDouble)
-    }
+  }
 
   def predicate: Parser[Condition] = term_condition | terms_condition | comparison_condition | range_condition
 
   lazy val or_condition: PackratParser[OrCondition] = expression ~ "(?i)or".r ~ expression ^^ {
-    case c1 ~ or ~ c2 => OrCondition(c1::c2::Nil)
-    }
+    case c1 ~ or ~ c2 => OrCondition(c1 :: c2 :: Nil)
+  }
 
   lazy val and_condition: PackratParser[AndCondition] = expression ~ "(?i)and".r ~ expression ^^ {
-    case c1 ~ and ~ c2 => AndCondition(c1::c2::Nil)
+    case c1 ~ and ~ c2 => AndCondition(c1 :: c2 :: Nil)
   }
 
   lazy val simple_expression: PackratParser[Condition] = or_condition | and_condition | predicate
@@ -83,10 +84,10 @@ class SimpleParser extends JavaTokenParsers with PackratParsers {
 
   def where_clause: Parser[Option[Condition]] =
     ("(?i)where".r ~ expression ^^ { case where ~ expr => Some(expr) }) |
-    ( "" ^^^ None)
+      ("" ^^^ None)
 
   /** select statement */
-  def select: Parser[Select] = "(?i)select".r ~ selectList ~ "(?i)from".r ~ source ~ where_clause ~ limit  ^^ {
+  def select: Parser[Select] = "(?i)select".r ~ selectList ~ "(?i)from".r ~ source ~ where_clause ~ limit ^^ {
     case select ~ lst ~ from ~ src ~ where ~ lmt => Select(lst, src, where, lmt)
   }
 
@@ -109,12 +110,15 @@ class SimpleParser extends JavaTokenParsers with PackratParsers {
 
   def command: Parser[Command] = (exit | explain | statement) <~ ";"
 
-  def packParse[T](p: Parser[T], in: CharSequence): ParseResult[T] = 
+  def packParse[T](p: Parser[T], in: CharSequence): ParseResult[T] =
     phrase(p)(new PackratReader(new CharSequenceReader(in)))
 
-  def parse(in: CharSequence): ParseResult[Command] = packParse(command, in)
+  def parse(in: CharSequence): Try[Command] = packParse(command, in) match {
+    case Success(r, _) => scala.util.Success(r)
+    case f => scala.util.Failure(new Exception(f.toString()))
+  }
 }
 
-object SimpleParser extends SimpleParser {
+object CommandParser extends CommandParser {
 
 }
