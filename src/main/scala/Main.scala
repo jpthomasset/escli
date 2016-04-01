@@ -22,9 +22,9 @@ object Main extends SimpleParser {
       // as the source is an iterator, we must
       // constantly 'pull' data. This is the reason to
       // use a foreach here
-      scanner.map(handler.handleStatement)
-        .takeWhile(identity)
-        .foreach(_ => {}) 
+      scanner.map(handler.handle)
+        .takeWhile(identity) // Continue while handler return true
+        .foreach(_ => {}) // Pull from iterator  
 
     }
     finally {
