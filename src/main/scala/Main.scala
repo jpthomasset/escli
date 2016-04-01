@@ -16,12 +16,15 @@ object Main extends SimpleParser {
 
     val qexec = new QueryExecutor(baseUrl, Http().singleRequest(_))
     val handler = new CommandHandler(qexec.request)
+    val scanner = CommandScanner(Terminal("escli> ").scan())
 
     try {
-      CommandScanner(Terminal("escli> ").scan())
-        .map(w => handler.handleStatement(w))
+      // as the source is an iterator, we must
+      // constantly 'pull' data. This is the reason to
+      // use a foreach here
+      scanner.map(handler.handleStatement)
         .takeWhile(identity)
-        .foreach(_ => {})
+        .foreach(_ => {}) 
 
     }
     finally {
