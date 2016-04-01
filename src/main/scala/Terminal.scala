@@ -6,11 +6,9 @@ import jline.TerminalFactory
 
 class Terminal(val prompt: String) {
 
-  val t = TerminalFactory.get()
-  t.init()
-  t.setEchoEnabled(true)
-  
   val reader = new ConsoleReader()
+  reader.setExpandEvents(false)
+  reader.setBellEnabled(false)
   reader.setPrompt(prompt)
   
   def scan(): Iterator[String] =
