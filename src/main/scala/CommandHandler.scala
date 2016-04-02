@@ -21,7 +21,7 @@ class CommandHandler(val makeRequest: (Request) => Future[ElasticResponse])(impl
 
   def printRaw(rs: ElasticResponse) = println("Response:\n---------\n" + rs.toJson.prettyPrint)
 
-  def await(e: Future[Any]) = Await.result(e, 5.seconds)
+  def await(e: Future[Any]) = Await.result(e, 120.seconds)
 
   def exec(s: AST.Statement): Unit = {
     QueryBuilder.build(s)
