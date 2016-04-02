@@ -10,36 +10,37 @@ import escli.AST._
 
 class CommandHandler(val makeRequest: (Request) => Future[ElasticResponse])(implicit val ec: ExecutionContext) {
 
-  def request(r: Request) = {
+  def print(rq: Request, rs: ElasticResponse) = {
+    rs match {
+      case x: SearchResponse => ElasticJsonPrinter.StdOut.print(rq, x)
+      case x => println(x)
+    }
+  }
 
-    val f =
-      makeRequest(r)
-        .map({
-          case x: SearchResponse => ElasticJsonPrinter.StdOut.print(r, x)
-          case x => println(x)
-        })
+  def printRaw(rq: Request) = println("Query:\n------\n" + rq.body.toJson.prettyPrint)
 
-    Await.result(f, 5.seconds)
+  def printRaw(rs: ElasticResponse) = println("Response:\n---------\n" + rs.toJson.prettyPrint)
+
+  def await(e: Future[Any]) = Await.result(e, 5.seconds)
+
+  def exec(s: AST.Statement): Unit = {
+    QueryBuilder.build(s)
+      .map(rq => await { makeRequest(rq).map(rs => print(rq, rs)) })
+  }
+
+  def explain(s: AST.Statement, withResult: Boolean): Unit = {
+    QueryBuilder.build(s)
+      .map(r => { r })
+      .filter(_ => withResult)
+      .map(r => await { makeRequest(r).map(printRaw) })
   }
 
   /** Handle the given command */
   def handle(c: Command): Boolean = c match {
     case AST.Print(s) => println(s); true;
     case AST.Exit() => println("Exiting..."); false;
-    case AST.Explain(x, withResult) => {
-      QueryBuilder
-        .build(x)
-        .foreach(r => {
-          println("Query:\n------\n" + r.body.toJson.prettyPrint)
-          if (withResult) {
-            val f = makeRequest(r).map(resp => println("Response:\n---------\n" + resp.toJson.prettyPrint))
-            Await.result(f, 5.seconds)
-          }
-        })
-
-      true
-    }
-    case r: AST.Statement => QueryBuilder.build(r).map(request); true;
+    case AST.Explain(s, withResult) => explain(s, withResult); true;
+    case s: AST.Statement => exec(s); true
   }
 
 }

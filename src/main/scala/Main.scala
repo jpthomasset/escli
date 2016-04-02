@@ -18,6 +18,7 @@ object Main {
     def parse(s:String) = CommandParser
       .parse(s)
       .recover { case x => AST.Print(x.getMessage) }
+       
     val handler = new CommandHandler(qexec.request)
     val scanner = CommandScanner(Terminal("escli> ").scan())
 

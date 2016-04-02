@@ -7,7 +7,7 @@
 
 
 # Next steps
-- Refactor and Add test on CommandHandler
+- Add test on CommandHandler
 - Add Signal Handler to handle CTRL+C when issuing a query
 - Add offset keyword
 - Use external pager for output (as in mysql)
