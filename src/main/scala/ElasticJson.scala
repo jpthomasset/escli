@@ -24,7 +24,7 @@ object ElasticJson {
       field -> field.length().max(getString(field).length)
 
     def columnsInfo(): Map[String, Int] =
-      (_source.fields.keys ++ List("_index", "_type", "_id"))
+      (List("_index", "_type", "_id") ++ _source.fields.keys)
         .map(columnInfo)
         .toMap
 

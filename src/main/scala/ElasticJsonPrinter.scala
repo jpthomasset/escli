@@ -5,7 +5,6 @@ import escli.ElasticJson._
 
 class ElasticJsonPrinter(output: String => Unit) {
 
-
   def print(rq: Request, rs: SearchResponse): Unit = {
     if (rs.hits.total > 0) {
       val cols = rq.body._source.getOrElse(Array.empty).toList
@@ -29,21 +28,29 @@ class ElasticJsonPrinter(output: String => Unit) {
   def print(hits: Array[Hit], queryCols: List[String]): Unit = {
     if (hits.length > 0) {
       // get max column size of column across all hits
-      val columns = hits
+      val hitsColumnsInfo = hits
         .map(_.columnsInfo)
         .reduce { (a, b) => a ++ b.map { case (k: String, v: Int) => k -> v.max(a.getOrElse(k, 0)) } }
 
-      val detectedCols = columns.map { case (col, _) => col }.filterNot(queryCols.toSet)
+      val detectedCols = hitsColumnsInfo.keySet
 
-      // Filter out queryCols containing wildcards as the true column names
-      // will be found in detectedCols
-      val orderedCols = queryCols.filter(!_.contains("*")) ++ detectedCols
+      // output columns are
+      // if queryCols is empty
+      //  => all detected columns key
+      // else
+      //  => all 'real' columns in queryCols + detected columns matching a regex in querycols
+      val columns = if (queryCols.isEmpty) detectedCols else {
+        queryCols.filter(!_.contains("*")) ++ queryCols.filter(_.contains("*")).flatMap(c => {
+          val r = ElasticJsonPrinter.patternToRegex(c)
+          detectedCols.filter(r.pattern.matcher(_).matches())
+        })
+      }
 
       /** Utility to print a row of separator, header or data (Hit) */
       def printRow(f: (String) => String, pad: String, sep: String) = {
         output(sep)
-        orderedCols.foreach(col => {
-          val size = columns.getOrElse(col, col.length())
+        columns.foreach(col => {
+          val size = hitsColumnsInfo.getOrElse(col, col.length())
           val content = f(col).take(size)
           val padString = pad * (size - content.length() + 1)
           output(pad + content + padString + sep)
@@ -75,5 +82,8 @@ class ElasticJsonPrinter(output: String => Unit) {
 }
 
 object ElasticJsonPrinter {
+  def patternToRegex(pattern: String): scala.util.matching.Regex =
+    pattern.replace(".", """\.""").replace("*", ".*").r
+
   val StdOut = new ElasticJsonPrinter(Console.print)
 }

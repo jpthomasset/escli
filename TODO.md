@@ -12,5 +12,5 @@
 - Add keywords: offset, desc, show indices
 - Use external pager for output (as in mysql)
 - handle IN clause with numbers
-- display "\_" metadata with result (\_id, \_index, \_type, \_score)
 - handle program argument cleanly
+
