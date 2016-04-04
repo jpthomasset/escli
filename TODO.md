@@ -9,8 +9,10 @@
 # Next steps
 - Add test on CommandHandler
 - Add Signal Handler to handle CTRL+C when issuing a query
-- Add keywords: offset, desc, show indices
+- Query language:
+  - Add keywords: offset, desc, show indices, not
+  - Add != operator
+  - handle IN clause with numbers
 - Use external pager for output (as in mysql)
-- handle IN clause with numbers
 - handle program argument cleanly
 
