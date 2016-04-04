@@ -6,60 +6,6 @@ import escli.ElasticJsonPrinter
 
 class ElasticJsonPrinterSpec extends WordSpec with Matchers {
 
-  "jsString" should {
-
-    val printer = new ElasticJsonPrinter(_ => {})
-
-    "convert JsNull to 'null'" in {
-      printer.jsString(JsNull) should be("null")
-    }
-
-    "convert JsTrue to 'true'" in {
-      printer.jsString(JsTrue) should be("true")
-    }
-
-    "convert JsFalse to 'false'" in {
-      printer.jsString(JsFalse) should be("false")
-    }
-
-    "convert JsNumber" in {
-      printer.jsString(JsNumber(10.5)) should be("10.5")
-    }
-
-    "convert JsString" in {
-      printer.jsString(JsString("abcd")) should be("abcd")
-    }
-
-    "convert JsArray" in {
-      printer.jsString(JsArray(JsString("abcd"), JsString("cdef"))) should be("""["abcd","cdef"]""")
-    }
-
-    "convert JsObject(...)" in {
-      printer.jsString(JsObject(("key1" -> JsString("value1")))) should be("""{"key1":"value1"}""")
-    }
-  }
-
-  "jsSize" should {
-    val printer = new ElasticJsonPrinter(_ => {})
-
-    "Get size of a JsValue" in {
-      val jsValue = JsString("Some value")
-      printer.jsSize(jsValue) should equal(10)
-    }
-
-    "Trim a JsObject to 80 char max" in {
-      val jsObject = JsObject(("key1" -> JsString("very long value over 80 chars (bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla bla)")))
-      printer.jsSize(jsObject) should equal(80)
-    }
-  }
-
-  "columnSize" should {
-    val printer = new ElasticJsonPrinter(_ => {})
-    "return an empty map when hit does not contain any column" in {
-      printer.columnSize(Hit("index", "type", "1", 1, JsArray())) should be (Map.empty[String, Int])
-      }
-    }
-
   "print(hits, queryCols)" should {
     val sb = new StringBuilder()
     val printer = new ElasticJsonPrinter(sb.append(_))

@@ -1,6 +1,7 @@
 package escli
 
 import spray.json._
+import JsonUtil._
 
 object ElasticJson {
 
@@ -8,7 +9,27 @@ object ElasticJson {
 
   /** Response objects */
   case class ShardInfo(total: Int, successful: Int, failed: Int)
-  case class Hit(_index: String, _type: String, _id: String, _score: Double, _source: JsValue)
+  case class Hit(_index: String, _type: String, _id: String, _score: Double, _source: JsObject) {
+
+    def getString(field: String): String = {
+      field match {
+        case "_index" => _index
+        case "_type" => _type
+        case "_id" => _id
+        case _ => _source.fields.get(field).map(stringOf).getOrElse("null")
+      }
+    }
+
+    def columnInfo(field: String): (String, Int) =
+      field -> field.length().max(getString(field).length)
+
+    def columnsInfo(): Map[String, Int] =
+      (_source.fields.keys ++ List("_index", "_type", "_id"))
+        .map(columnInfo)
+        .toMap
+
+  }
+
   case class Hits(total: Long, max_score: Double, hits: Array[Hit])
   case class SearchResponse(took: Long, timed_out: Boolean, _shards: ShardInfo, hits: Hits) extends ElasticResponse
   case class ErrorResponse(error: String, status: Int) extends ElasticResponse
@@ -18,14 +39,12 @@ object ElasticJson {
   case class RequestBody(from: Option[Int], size: Option[Int], _source: Option[Array[String]], query: Option[TypedQuery])
 
   sealed trait QueryClause
-  case class TypedQuery(clause:QueryClause)
+  case class TypedQuery(clause: QueryClause)
   case class TermQuery(field: String, value: String) extends QueryClause
   case class TermsQuery(field: String, values: List[String]) extends QueryClause
   case class RangeQuery(field: String, gte: Option[Double], gt: Option[Double], lte: Option[Double], lt: Option[Double]) extends QueryClause
 
   case class BoolQuery(must: Option[Array[TypedQuery]], filter: Option[Array[TypedQuery]], should: Option[Array[TypedQuery]], must_not: Option[Array[TypedQuery]]) extends QueryClause
-
-
 
 }
 
@@ -40,11 +59,11 @@ object ElasticJsonProtocol extends DefaultJsonProtocol {
 
   implicit def elasticResponseFormat = new RootJsonFormat[ElasticResponse] {
     def write(e: ElasticResponse) = e match {
-      case o:SearchResponse => o.toJson
-      case o:ErrorResponse => o.toJson
+      case o: SearchResponse => o.toJson
+      case o: ErrorResponse => o.toJson
     }
     def read(value: JsValue) = ???
-   }
+  }
 
   implicit def termQueryFormat = new RootJsonFormat[TermQuery] {
     def write(term: TermQuery) = Map(term.field -> term.value).toJson
@@ -72,11 +91,12 @@ object ElasticJsonProtocol extends DefaultJsonProtocol {
     }
 
     def write(range: RangeQuery) = {
-      val fields =JsObject(
+      val fields = JsObject(
         toJsField("gte", range.gte) ++
           toJsField("gt", range.gt) ++
           toJsField("lte", range.lte) ++
-          toJsField("lt", range.lt))
+          toJsField("lt", range.lt)
+      )
 
       JsObject((range.field, fields))
     }
@@ -91,7 +111,6 @@ object ElasticJsonProtocol extends DefaultJsonProtocol {
       case x => deserializationError("Unexpected Range Query object: " + x)
     }
   }
-
 
   implicit def typedQueryFormat = new RootJsonFormat[TypedQuery] {
     def write(q: TypedQuery) = q.clause match {
@@ -117,6 +136,5 @@ object ElasticJsonProtocol extends DefaultJsonProtocol {
   implicit val boolQueryFormat: JsonFormat[BoolQuery] = lazyFormat(jsonFormat4(BoolQuery))
 
   implicit val requestBodyFormat = jsonFormat4(RequestBody)
-
 
 }

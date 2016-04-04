@@ -5,28 +5,6 @@ import escli.ElasticJson._
 
 class ElasticJsonPrinter(output: String => Unit) {
 
-  def columnSize(hit: Hit): Map[String, Int] = {
-    hit._source match {
-      case JsObject(o) => o.map(t => (t._1, t._1.length().max(jsSize(t._2))))
-      case _ => Map.empty
-    }
-  }
-
-  def jsString(x: JsValue): String = x match {
-    case JsObject(_) => x.toString()
-    case JsArray(_) => x.toString()
-    case JsNull => "null"
-    case JsTrue => "true"
-    case JsFalse => "false"
-    case JsNumber(x) => x.toString()
-    case JsString(x) => x
-    case _ => throw new IllegalStateException
-  }
-
-  def jsSize(x: JsValue): Int = x match {
-    case _: JsObject => jsString(x).length().min(80)
-    case _ => jsString(x).length()
-  }
 
   def print(rq: Request, rs: SearchResponse): Unit = {
     if (rs.hits.total > 0) {
@@ -50,9 +28,9 @@ class ElasticJsonPrinter(output: String => Unit) {
    */
   def print(hits: Array[Hit], queryCols: List[String]): Unit = {
     if (hits.length > 0) {
-      // get column size
+      // get max column size of column across all hits
       val columns = hits
-        .map(columnSize)
+        .map(_.columnsInfo)
         .reduce { (a, b) => a ++ b.map { case (k: String, v: Int) => k -> v.max(a.getOrElse(k, 0)) } }
 
       val detectedCols = columns.map { case (col, _) => col }.filterNot(queryCols.toSet)
@@ -79,7 +57,7 @@ class ElasticJsonPrinter(output: String => Unit) {
       def printHeader() = printRow(col => col, " ", "|")
       /** Print one row of data: | a | b | */
       def printHit(h: Hit) = printRow(
-        col => jsString(h._source.asJsObject.fields.getOrElse(col, JsNull)),
+        c => h.getString(c),
         " ",
         "|"
       )

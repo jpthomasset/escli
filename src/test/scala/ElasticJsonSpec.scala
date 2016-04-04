@@ -31,7 +31,7 @@ class ElasticJsonSpec extends WordSpec with Matchers {
     }
 
     "parse a Hit json" in {
-      assertResult(Hit("twitter", "tweet", "1", 1.0, source.parseJson)) {
+      assertResult(Hit("twitter", "tweet", "1", 1.0, source.parseJson.asJsObject)) {
         jsonHit.parseJson.convertTo[Hit]
       }
     }
