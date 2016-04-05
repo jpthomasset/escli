@@ -1,4 +1,4 @@
-escli
+escli [![Build Status](https://travis-ci.org/jpthomasset/escli.svg?branch=master)](https://travis-ci.org/jpthomasset/escli)
 ======
 
 This program is a command line client allowing to run basic queries against elastic search using a language somewhat similar to SQL. 
