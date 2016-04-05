@@ -7,6 +7,7 @@
 
 
 # Next steps
+- Refactor & Add test on ElasticJsonPrinter (column selection)
 - Add test on CommandHandler
 - Add Signal Handler to handle CTRL+C when issuing a query
 - Query language:

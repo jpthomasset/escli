@@ -40,9 +40,15 @@ class ElasticJsonPrinter(output: String => Unit) {
       // else
       //  => all 'real' columns in queryCols + detected columns matching a regex in querycols
       val columns = if (queryCols.isEmpty) detectedCols else {
-        queryCols.filter(!_.contains("*")) ++ queryCols.filter(_.contains("*")).flatMap(c => {
-          val r = ElasticJsonPrinter.patternToRegex(c)
-          detectedCols.filter(r.pattern.matcher(_).matches())
+        queryCols
+          .map( c => if(c.contains('.')) c.substring(0, c.indexOf('.')) else c)
+          .flatMap(c => {
+          if (!c.contains("*"))
+            List(c)
+          else {
+            val r = ElasticJsonPrinter.patternToRegex(c)
+            detectedCols.filter(r.pattern.matcher(_).matches())
+          }
         })
       }
 
