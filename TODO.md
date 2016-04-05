@@ -9,11 +9,12 @@
 # Next steps
 - Refactor & Add test on ElasticJsonPrinter (column selection)
 - Add test on CommandHandler
-- Add Signal Handler to handle CTRL+C when issuing a query
+- Add Signal Handler to intercept CTRL+C to abort a long running query
 - Query language:
-  - Add keywords: offset, desc, show indices, not
-  - Add != operator
-  - handle IN clause with numbers
+  - Add keywords: offset, desc, show indices
+  - Add !=, is null, is not null, not
+  - handle numbers in 'IN' clause
+- Handle double quote for strings
 - Use external pager for output (as in mysql)
 - handle program argument cleanly
 
