@@ -30,7 +30,7 @@ class CommandHandler(val makeRequest: (Request) => Future[ElasticResponse])(impl
 
   def explain(s: AST.Statement, withResult: Boolean): Unit = {
     QueryBuilder.build(s)
-      .map(r => { r })
+      .map(r => { printRaw(r); r })
       .filter(_ => withResult)
       .map(r => await { makeRequest(r).map(printRaw) })
   }
