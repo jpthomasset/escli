@@ -24,6 +24,8 @@ From the sbt command line, type ```run``` optionnaly followed by the base addres
 Supported commands
 ----------------------
 
+All commands must be ended by ';' to be interpreted.
+
 ### Select
 
 ```SQL
