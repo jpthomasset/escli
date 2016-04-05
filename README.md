@@ -29,7 +29,7 @@ All commands must be ended by ';' to be interpreted.
 ### Select
 
 ```SQL
-SELECT [select_list] FROM [source] <where_clause> <limit_clause>
+SELECT [select_list] FROM [source] <where_clause> <limit_clause>;
 ```
 
 Where
